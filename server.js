@@ -12,7 +12,7 @@ mongoose.connect(URL, {});
 const connection = mongoose.connection;
 
 connection.once("open", () => {
-    console.log("MongoDB was connected Successfully");
+  console.log("MongoDB was connected Successfully");
 });
 
 const app = express();
@@ -23,5 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 app.listen(PORT, () => {
-    console.log(`Server is up and running in port ${PORT}`);
+  console.log(`Server is up and running in port ${PORT}`);
 });
+
+app.use("/api/auth", require("./BACKEND/routes/auth"));
