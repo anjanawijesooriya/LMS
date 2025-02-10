@@ -57,12 +57,10 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "User does not exist. Please register first.",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "User does not exist. Please register first.",
+      });
     }
 
     const isMatch = await user.matchPasswords(password);
@@ -95,15 +93,69 @@ exports.forgotpassword = async (req, res) => {
 
     const resetURL = `${process.env.CLIENT_URL}/passwordreset/${resetToken}`;
     const message = `
-      <h1>Password Reset Request</h1>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetURL}" clicktracking=off>${resetURL}</a>
-    `;
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .header {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+      }
+      .message {
+        font-size: 16px;
+        color: #555;
+        margin: 20px 0;
+      }
+      .footer {
+        font-size: 12px;
+        color: #777;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="header">Password Reset Request</h1>
+      <p class="message">You recently requested to reset your password. Click the button below to proceed.</p>
+      <a href="${resetURL}" 
+         style="display: inline-block; padding: 12px 20px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 16px; border-radius: 5px; font-weight: bold;" 
+         target="_blank">
+         Reset Password
+      </a>
+      <p class="message">If the button above doesn't work, copy and paste this link into your browser:</p>
+      <p style="word-break: break-word;">
+        <a href="${resetURL}" style="color: #007bff; text-decoration: underline;">${resetURL}</a>
+      </p>
+      <p class="message">If you did not request a password reset, please ignore this email.</p>
+      <p class="footer">This link will expire in 30 minutes. If you need further assistance, contact support.</p>
+    </div>
+  </body>
+  </html>
+`;
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset",
-      text: message,
+      subject: "Password Reset Request",
+      html: message,
     });
 
     res.status(200).json({ success: true, message: "Reset email sent" });
@@ -237,12 +289,10 @@ const handleError = (error, res) => {
   }
 
   if (error.name === "ValidationError") {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: Object.values(error.errors).map((val) => val.message),
-      });
+    return res.status(400).json({
+      success: false,
+      message: Object.values(error.errors).map((val) => val.message),
+    });
   }
 
   res.status(500).json({ success: false, message: "Internal server error" });
