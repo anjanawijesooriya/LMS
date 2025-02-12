@@ -72,41 +72,44 @@ const Login = () => {
         config
       );
 
+      console.log(data);
+
       localStorage.setItem("authToken", data.token); //set the browser caching or local storage for globally accessed anywhere in the application
-      localStorage.setItem("username", data.username);
-      localStorage.setItem("email", data.email);
-      localStorage.setItem("type", data?.type);
-      localStorage.setItem("id", data.id);
+      localStorage.setItem("firstname", data.user.firstName);
+      localStorage.setItem("lastname", data.user.lastName);
+      localStorage.setItem("email", data.user.email);
+      localStorage.setItem("role", data?.user.role);
+      if (data?.user.role === "student") {
+        localStorage.setItem("status", data?.user.membership?.status);
+        localStorage.setItem("studentID", data.user.studentId);
+      }
+      localStorage.setItem("id", data.user.id);
 
       setTimeout(() => {
         // set a 5seconds timeout for authentication
-        if (data.type === "Admin") {
-          history(`/admin-dashboard/${data.username}`);
+        if (data.user.role === "admin") {
+          history(`/admin-dashboard/${data.user.lastName}`);
         } else {
-          history(`/user-dashboard/${data.username}`);
+          history(`/home/${data.user.firstName}`);
         }
         setLoading(false);
-        window.location.reload();
       }, 5000);
     } catch (error) {
       setError(error.response.data.error);
       setAvailable(error.response.data.available);
       setLoading(false);
       setIsError(true);
+      if (error.status === 401) {
+        setError("Invalid credentials. Please try again.");
+      } else if (error.status === 404) {
+        setError("User does not exist. Please register first.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
       setTimeout(() => {
         setError("");
         setAvailable("");
       }, 5000); //5s
-    }
-  };
-
-  const showPassword = () => {
-    //show password method when check box is enabled
-    var x = document.getElementById("password");
-    if (x.type === "password") {
-      x.type = "text";
-    } else {
-      x.type = "password";
     }
   };
 

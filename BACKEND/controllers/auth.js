@@ -38,7 +38,15 @@ exports.registerStaff = async (req, res) => {
     });
 
     sendToken(user, 201, res);
-  } catch (error) {
+  } catch (error) { if (error.code === 11000) {
+    const message = "Already have an account using this email";
+    return res.status(400).json({ success: false, error: message });
+  }
+
+  if (error.name === "ValidationError") {
+    const message = Object.values(error.errors).map((val) => val.message);
+    return res.status(400).json({ success: false, error: message });
+  }
     handleError(error, res);
   }
 };
@@ -57,7 +65,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return res.status(401).json({
+      return res.status(404).json({
         success: false,
         message: "User does not exist. Please register first.",
       });

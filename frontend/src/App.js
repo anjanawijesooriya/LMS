@@ -16,7 +16,10 @@ import { Button } from "antd";
 import Login from "./components/Login Register/Login";
 import Register from "./components/Login Register/Register";
 import ResetPassword from "./components/Login Register/ResetPassword";
+import Home from "./common/Home";
 
+//Admin
+import Dashboard from "./components/Admin/Dashboard";
 
 const App = () => {
   const [showButton, setShowButton] = useState(false);
@@ -49,6 +52,8 @@ const App = () => {
             path="/passwordreset/:resetToken"
             element={<ResetPassword />}
           />
+          <Route path="/home/:username" element={<Home />} />
+          <Route path="/admin-dashboard/:username" element={<Dashboard />} />
         </Routes>
 
         {showButton && (
