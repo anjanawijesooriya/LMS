@@ -57,7 +57,15 @@ const ForgotPassword = () => {
         setVisible(false);
       }, 3000);
     } catch (error) {
-      setError(error.response.data.error);
+      if (error.response) {
+        if (error.response.status === 404) {
+          setError("User not found. Please enter a valid email address!");
+        } else {
+          setError(error.response.data.error || "Something went wrong. Please try again.");
+        }
+      } else {
+        setError("Network error. Please check your connection.");
+      }
       setTimeout(() => {
         setLoading(false);
         setError("");
@@ -77,7 +85,7 @@ const ForgotPassword = () => {
       <Modal
         open={visible}
         title={
-          <span className="text-gray-800 dark:text-white">
+          <span className="text-gray-800 dark:text-black">
             Password Request Form
           </span>
         }

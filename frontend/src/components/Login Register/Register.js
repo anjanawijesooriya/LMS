@@ -13,11 +13,6 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -75,24 +70,11 @@ const Register = () => {
     }
 
     setLoading(true);
-    if (password !== confirmPassword) {
-      //method for cheking the password an confirm password
-      setPassword("");
-      setConfirmPassword("");
-      setLoading(false);
-      setTimeout(() => {
-        setErrors("");
-      }, 5000);
-
-      return setErrors("Password did not match");
-    }
 
     try {
-      const { data } = await axios.post(
-        "/api/auth/register",
-        formData,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/api/auth/register", formData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       notification.success({
         message: "Success",
@@ -108,6 +90,14 @@ const Register = () => {
         placement: "top",
       });
       setLoading(false);
+      if (error.status === 401) {
+        setErrors({ email: "Invalid Email" });
+      } else if (error.status === 400) {
+        setErrors({ email: "Email already exists" });
+      } else {
+        setErrors({ email: "Something went wrong" });
+      }
+      setTimeout(() => setErrors(""), 3000);
     }
   };
 
