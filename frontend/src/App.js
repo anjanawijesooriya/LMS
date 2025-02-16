@@ -23,6 +23,7 @@ import Dashboard from "./components/Admin/Dashboard";
 
 const App = () => {
   const [showButton, setShowButton] = useState(false);
+  const [available, setAvailable] = useState(false);
 
   useEffect(() => {
     window.addEventListener("scroll", () => {
@@ -41,18 +42,29 @@ const App = () => {
     });
   };
 
+  useEffect(() => {
+    if(localStorage.getItem("authToken") !== null){
+      setAvailable(true);
+    }
+  })
+
   return (
     <div>
       <Router>
         <Routes>
           {/* <Route path="/" element={[<NavBar />, <Home />, <Footer />]} /> */}
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/passwordreset/:resetToken"
             element={<ResetPassword />}
           />
-          <Route path="/home/:username" element={<Home />} />
+          {available ? (
+            <Route path="/home/:username" element={<Home />} />
+          ): (
+            <Route path="/" element={<Home />} />
+          )}
+          
           <Route path="/admin-dashboard/:username" element={<Dashboard />} />
         </Routes>
 
