@@ -98,7 +98,7 @@ const Login = () => {
       setTimeout(() => {
         setError("");
         setAvailable("");
-      }, 5000); //5s
+      }, 3000); //3s
     }
   };
 
