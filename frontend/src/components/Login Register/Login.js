@@ -1,26 +1,15 @@
 import React, { useState } from "react";
 import {
-  Row,
-  Col,
-  Form,
-  Input,
-  Button,
   Layout,
-  Divider,
-  Checkbox,
   Spin,
 } from "antd";
 import "./Login Register.scss";
-// import Logo from "../../assets/LOGO new.png";
-import LoginLogo from "../../assets/login register/login.png";
 
 import { LoadingOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import PasswordResetRequest from "./PasswordResetRequest";
 import { FaLock, FaEnvelope } from "react-icons/fa";
-
-const { Header } = Layout;
 
 const Login = () => {
   const [password, setPassword] = useState("");
@@ -90,7 +79,7 @@ const Login = () => {
         if (data.user.role === "admin") {
           history(`/admin-dashboard/${data.user.lastName}`);
         } else {
-          history(`/home/${data.user.firstName}`);
+          history("/");
         }
         setLoading(false);
       }, 5000);
@@ -116,7 +105,11 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
+        <h2
+          className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6 cursor-pointer"
+          onClick={() => (window.location.href = "/")}
+        >
+          {" "}
           Devians - LMS
         </h2>
         <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white mb-6">

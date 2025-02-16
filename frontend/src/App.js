@@ -3,15 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ArrowUpOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 
-//common
-// import Home from "./common/Home";
-// import NavBar from "./common/NavBar";
-// import Footer from "./common/Footer";
-
-//routes
-// import PrivateRoute from "./routes/PrivateRoute";
-// import PageNotFound from "./routes/PageNotFound";
-
 //components
 import Login from "./components/Login Register/Login";
 import Register from "./components/Login Register/Register";
@@ -26,62 +17,45 @@ const App = () => {
   const [available, setAvailable] = useState(false);
 
   useEffect(() => {
-    window.addEventListener("scroll", () => {
-      if (window.pageYOffset > 300) {
-        setShowButton(!showButton);
-      } else {
-        setShowButton(false);
-      }
-    });
+    const handleScroll = () => {
+      setShowButton(window.pageYOffset > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
   useEffect(() => {
-    if(localStorage.getItem("authToken") !== null){
+    if (localStorage.getItem("authToken")) {
       setAvailable(true);
     }
-  })
+  }, []); // ✅ Fix: Add dependency array to run once on mount
+
+  const isAuthenticated = !!localStorage.getItem("authToken"); // Convert to boolean
 
   return (
-    <div>
-      <Router>
-        <Routes>
-          {/* <Route path="/" element={[<NavBar />, <Home />, <Footer />]} /> */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/passwordreset/:resetToken"
-            element={<ResetPassword />}
-          />
-          {available ? (
-            <Route path="/home/:username" element={<Home />} />
-          ): (
-            <Route path="/" element={<Home />} />
-          )}
-          
-          <Route path="/admin-dashboard/:username" element={<Dashboard />} />
-        </Routes>
+    <Router>
+      <Routes>
+        {/* Home component dynamically handles logged-in and guest users */}
+        <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} /> 
+        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/passwordreset/:resetToken" element={<ResetPassword />} />
+        {/* {available ? (
+          <Route path="/home/:username" element={<Home />} />
+        ) : null} */}
+        <Route path="/admin-dashboard/:username" element={<Dashboard />} />
+      </Routes>
 
-        {showButton && (
-          <div className=" fixed bottom-5 right-5 text-3xl p-2 cursor-pointer justify-center items-center">
-            <Button
-              type="primary"
-              size="large"
-              shape="circle"
-              onClick={scrollToTop}
-            >
-              <ArrowUpOutlined />
-            </Button>
-          </div>
-        )}
-      </Router>
-    </div>
+      {showButton && (
+        <div className="fixed bottom-5 right-5 text-3xl p-2 cursor-pointer">
+          <Button type="primary" size="large" shape="circle" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <ArrowUpOutlined />
+          </Button>
+        </div>
+      )}
+    </Router>
   );
 };
 

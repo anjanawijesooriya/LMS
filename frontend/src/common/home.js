@@ -10,7 +10,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const Home = () => {
+const Home = ({ isAuthenticated }) => {
   const [available, setAvailable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
@@ -23,7 +23,7 @@ const Home = () => {
     if (localStorage.getItem("authToken")) {
       setAvailable(true);
     }
-  }, []);
+  }, [available]);
 
   useEffect(() => {
     if (darkMode) {
@@ -36,14 +36,8 @@ const Home = () => {
   }, [darkMode]);
 
   const logoutHandler = () => {
-    localStorage.setItem("authToken", null);
-    localStorage.removeItem("firstname");
-    localStorage.removeItem("lastname");
-    localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    localStorage.removeItem("id");
-    localStorage.removeItem("studentID");
-    localStorage.removeItem("status");
+    localStorage.clear();
+    setAvailable(false);
     history("/login");
   };
 
@@ -59,7 +53,7 @@ const Home = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          {available ? (
+          {isAuthenticated ? (
             <>
               {localStorage.getItem("status") === "active" ? (
                 <Button type="default">Courses</Button>
@@ -105,11 +99,17 @@ const Home = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          {available ? (
+          {isAuthenticated ? (
             <>
-              <Button type="default">Courses</Button>
+              {localStorage.getItem("status") === "active" ? (
+                <Button type="default">Courses</Button>
+              ) : (
+                <Button type="primary">Enroll</Button>
+              )}
               <Button type="default">Profile</Button>
-              <Button type="default">Logout</Button>
+              <Button type="default" onClick={logoutHandler}>
+                Logout
+              </Button>
             </>
           ) : (
             <>
