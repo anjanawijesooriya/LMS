@@ -231,6 +231,9 @@ const sendToken = (user, statusCode, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      studentId: user.studentId, // Ensure it's included
+      membership: user.membership,
+      isApproved: user.isApproved, // Ensure it's included
     },
   });
 };

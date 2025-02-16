@@ -35,6 +35,18 @@ const Home = () => {
     }
   }, [darkMode]);
 
+  const logoutHandler = () => {
+    localStorage.setItem("authToken", null);
+    localStorage.removeItem("firstname");
+    localStorage.removeItem("lastname");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("id");
+    localStorage.removeItem("studentID");
+    localStorage.removeItem("status");
+    history("/login");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
@@ -49,9 +61,15 @@ const Home = () => {
           />
           {available ? (
             <>
-              <Button type="default">Courses</Button>
+              {localStorage.getItem("status") === "active" ? (
+                <Button type="default">Courses</Button>
+              ) : (
+                <Button type="primary">Enroll</Button>
+              )}
               <Button type="default">Profile</Button>
-              <Button type="default">Logout</Button>
+              <Button type="default" onClick={logoutHandler}>
+                Logout
+              </Button>
             </>
           ) : (
             <>
