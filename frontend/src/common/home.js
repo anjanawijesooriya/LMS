@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, Card, Rate, Switch } from "antd";
+import { Button, Input, Card, Rate, Switch, Spin } from "antd";
 import {
   SearchOutlined,
   MoonOutlined,
@@ -16,6 +16,7 @@ const Home = ({ isAuthenticated }) => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
+  const [loader, setLoader] = useState(false);
 
   const history = useNavigate();
 
@@ -23,6 +24,9 @@ const Home = ({ isAuthenticated }) => {
     if (localStorage.getItem("authToken")) {
       setAvailable(true);
     }
+    setTimeout(() => {
+      setLoader(true);
+    }, 3000);
   }, [available]);
 
   useEffect(() => {

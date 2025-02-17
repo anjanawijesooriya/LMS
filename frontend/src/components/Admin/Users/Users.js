@@ -1,9 +1,21 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { Spin } from "antd";
 
 const Users = () => {
-  return (
-    <div>Users</div>
-  )
-}
+  const [loader, setLoader] = useState(true);
 
-export default Users
+  useEffect(() => {
+    setTimeout(() => {
+      setLoader(false);
+    }, 3000);
+  });
+  return loader ? (
+    <center className="mt-64">
+      <Spin size="large" />
+    </center>
+  ) : (
+    <div>Users</div>
+  );
+};
+
+export default Users;

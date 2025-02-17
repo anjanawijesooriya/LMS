@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 import { notification, Spin } from "antd";
 import { useNavigate, Link } from "react-router-dom";
@@ -15,8 +15,13 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [loader, setLoader] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setTimeout(() => setLoader(true), 3000);
+  });
 
   const validateField = (name, value) => {
     let errorMsg = "";
@@ -101,7 +106,11 @@ const Register = () => {
     }
   };
 
-  return (
+  return loader === false ? (
+    <center className="mt-80">
+      <Spin size="large" />
+    </center>
+  ) : (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
         <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white mb-4">
@@ -166,7 +175,7 @@ const Register = () => {
 
         <p className="text-center text-gray-600 dark:text-gray-400 mt-4">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600 dark:text-blue-400">
+          <Link to="/login" className="text-blue-600 dark:text-blue-400">
             Login
           </Link>
         </p>

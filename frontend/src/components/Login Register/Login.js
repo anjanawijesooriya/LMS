@@ -1,8 +1,5 @@
-import React, { useState } from "react";
-import {
-  Layout,
-  Spin,
-} from "antd";
+import React, { useEffect, useState } from "react";
+import { Layout, Spin } from "antd";
 import "./Login Register.scss";
 
 import { LoadingOutlined } from "@ant-design/icons";
@@ -19,8 +16,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false); //additional
   const [isError, setIsError] = useState(false);
   const [isValid, setIsValid] = useState(false);
+  const [loader, setLoader] = useState(false);
 
   const history = useNavigate();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoader(true);
+    }, 3000);
+  });
 
   const validateEmail = (email) => {
     return /^[\w-.]+@[\w-]+\.[a-z]{2,}$/.test(email);
@@ -80,6 +84,7 @@ const Login = () => {
           history(`/admin-dashboard/${data.user.lastName}`);
         } else {
           history("/");
+          window.location.reload();
         }
         setLoading(false);
       }, 5000);
@@ -102,7 +107,11 @@ const Login = () => {
     }
   };
 
-  return (
+  return loader == false ? (
+    <center className="mt-80">
+      <Spin size="large" />
+    </center>
+  ) : (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 w-full max-w-md">
         <h2

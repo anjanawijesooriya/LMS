@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, Button, Spin } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   UserOutlined,
@@ -17,8 +17,15 @@ const { Header, Sider, Content } = Layout;
 
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [loader, setLoader] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoader(false);
+    }, 3000);
+  });
 
   // Get the tab from query params
   const queryParams = new URLSearchParams(location.search);
@@ -49,19 +56,42 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  return (
+  return loader ? (
+    <center className="mt-80">
+      <Spin size="large" />
+    </center>
+  ) : (
     <Layout className="min-h-screen">
       {/* Sidebar */}
-      <Sider trigger={null} collapsible collapsed={collapsed} className="bg-gray-900">
-        <div className="p-4 text-white text-lg text-center font-bold">Admin Panel</div>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        className="bg-gray-900"
+      >
+        <div className="p-4 text-white text-lg text-center font-bold">
+          Admin Panel
+        </div>
         <Menu theme="dark" mode="inline" selectedKeys={[selectedTab]}>
-          <Menu.Item key="users" icon={<UserOutlined />} onClick={() => handleMenuClick("users")}>
+          <Menu.Item
+            key="users"
+            icon={<UserOutlined />}
+            onClick={() => handleMenuClick("users")}
+          >
             Users
           </Menu.Item>
-          <Menu.Item key="classes" icon={<BookOutlined />} onClick={() => handleMenuClick("classes")}>
+          <Menu.Item
+            key="classes"
+            icon={<BookOutlined />}
+            onClick={() => handleMenuClick("classes")}
+          >
             Classes
           </Menu.Item>
-          <Menu.Item key="payments" icon={<DollarOutlined />} onClick={() => handleMenuClick("payments")}>
+          <Menu.Item
+            key="payments"
+            icon={<DollarOutlined />}
+            onClick={() => handleMenuClick("payments")}
+          >
             Payments
           </Menu.Item>
         </Menu>
@@ -70,8 +100,18 @@ const Dashboard = () => {
       <Layout>
         {/* Header */}
         <Header className="bg-white shadow-md flex items-center justify-between px-4">
-          <Button type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
-          <Button type="primary" icon={<LogoutOutlined />} onClick={logoutHandler}>Logout</Button>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+          />
+          <Button
+            type="primary"
+            icon={<LogoutOutlined />}
+            onClick={logoutHandler}
+          >
+            Logout
+          </Button>
         </Header>
 
         {/* Main Content */}
