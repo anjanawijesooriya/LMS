@@ -10,7 +10,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const Home = () => {
+const UserHome = () => {
   const [available, setAvailable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
@@ -36,6 +36,19 @@ const Home = () => {
     }
   }, [darkMode]);
 
+  const logoutHandler = () => {
+    localStorage.setItem("authToken", null);
+    localStorage.removeItem("firstname");
+    localStorage.removeItem("lastname");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("status");
+    localStorage.removeItem("studentID");
+    localStorage.removeItem("id");
+    setAvailable(false);
+    history("/login");
+  };
+
   return loader ? (
     <center className="mt-80">
       <Spin size="large" />
@@ -52,12 +65,16 @@ const Home = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          <Button type="default" onClick={() => history("/login")}>
-            Login
+          {localStorage.getItem("status") === "active" ? (
+            <Button type="default">Courses</Button>
+          ) : (
+            <Button type="primary">Enroll</Button>
+          )}
+          <Button type="default">Profile</Button>
+          <Button type="default" onClick={logoutHandler}>
+            Logout
           </Button>
-          <Button type="primary" onClick={() => history("/register")}>
-            Sign Up
-          </Button>
+
           {/* <Switch
             checked={darkMode}
             onChange={() => setDarkMode(!darkMode)}
@@ -82,11 +99,11 @@ const Home = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          <Button type="default" onClick={() => history("/login")}>
-            Login
-          </Button>
-          <Button type="primary" onClick={() => history("/register")}>
-            Sign Up
+          <Button type="default">Courses</Button>
+          <Button type="primary">Enroll</Button>
+          <Button type="default">Profile</Button>
+          <Button type="default" onClick={logoutHandler}>
+            Logout
           </Button>
           <Switch
             checked={darkMode}
@@ -190,4 +207,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default UserHome;

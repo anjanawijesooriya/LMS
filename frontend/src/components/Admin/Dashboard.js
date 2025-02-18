@@ -52,7 +52,11 @@ const Dashboard = () => {
 
   //logout
   const logoutHandler = () => {
-    localStorage.clear();
+    localStorage.setItem("authToken", null);
+    localStorage.removeItem("firstname");
+    localStorage.removeItem("lastname");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
