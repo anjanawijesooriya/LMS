@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, Card, Rate, Switch, Spin } from "antd";
+import { Button, Input, Card, Rate, Switch, Spin, Collapse } from "antd";
 import {
   SearchOutlined,
   MoonOutlined,
@@ -9,6 +9,13 @@ import {
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+
+const { Panel } = Collapse;
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+};
 
 const UserHome = () => {
   const [available, setAvailable] = useState(false);
@@ -121,7 +128,7 @@ const UserHome = () => {
           animate={{ y: [-10, 10, -10] }}
           transition={{ repeat: Infinity, duration: 3 }}
         >
-          Unlock Your Potential with High-Quality Online Learning
+          Unlock Your Potential with Expert English Learning
         </motion.h2>
         <p className="mt-4 text-lg md:text-xl">
           Join thousands of students learning from top educators
@@ -137,7 +144,13 @@ const UserHome = () => {
       </header>
 
       {/* Featured Courses */}
-      <section className="py-12 px-4 md:px-6 lg:px-10">
+      <motion.section
+        className="py-12 px-4 md:px-6 lg:px-10"
+        initial="hidden"
+        whileInView="visible"
+        variants={fadeInUp}
+        viewport={{ once: true }}
+      >
         <h3 className="text-2xl md:text-3xl font-bold text-center">
           Featured Courses
         </h3>
@@ -166,7 +179,76 @@ const UserHome = () => {
             </Card>
           ))}
         </div>
-      </section>
+      </motion.section>
+
+      {/* Why Choose Us */}
+      <motion.section
+        className="py-12 px-4 md:px-6 lg:px-10 text-center"
+        initial="hidden"
+        whileInView="visible"
+        variants={fadeInUp}
+        viewport={{ once: true }}
+      >
+        <h3 className="text-2xl md:text-3xl font-bold">Why Choose Us?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <Card className="p-4 dark:bg-gray-800">
+            <h4 className="font-bold">🏆 Industry-Recognized Certifications</h4>
+            <p>Buildup knowledge and boost your career opportunities.</p>
+          </Card>
+          <Card className="p-4 dark:bg-gray-800">
+            <h4 className="font-bold">📞 24/7 Support & Live Sessions</h4>
+            <p>Learn anytime with expert support and live mentoring.</p>
+          </Card>
+          <Card className="p-4 dark:bg-gray-800">
+            <h4 className="font-bold">✅ Expert Mentors</h4>
+            <p>Improve your knowledge with best mentor.</p>
+          </Card>
+        </div>
+      </motion.section>
+
+      {/* Instructor Showcase */}
+      <motion.section
+        className="py-12 px-4 md:px-6 lg:px-96 text-center"
+        initial="hidden"
+        whileInView="visible"
+        variants={fadeInUp}
+        viewport={{ once: true }}
+      >
+        <h3 className="text-2xl md:text-3xl font-bold">Meet Your Instructor</h3>
+        <Card className="mt-6 p-6 dark:bg-gray-800">
+          <img
+            src="/instructor.jpg"
+            alt="Instructor"
+            className="rounded-full w-32 h-32 mx-auto"
+          />
+          <h4 className="font-bold mt-4 dark:text-white">Kumuduni Dammika</h4>
+          <p className="text-gray-600 dark:text-gray-300">
+            Expert English Instructor with 10+ years of experience.
+          </p>
+        </Card>
+      </motion.section>
+
+      {/* FAQ Section */}
+      <motion.section
+        className="py-12 px-4 md:px-6 lg:px-10"
+        initial="hidden"
+        whileInView="visible"
+        variants={fadeInUp}
+        viewport={{ once: true }}
+      >
+        <h3 className="text-2xl md:text-3xl font-bold text-center">FAQs</h3>
+        <Collapse
+          accordion
+          className="mt-6 dark:bg-gray-600 dark:text-white font-bold"
+        >
+          <Panel header="How do I enroll?" key="1" className="dark: text-white">
+            <p>Simply sign up and choose a course to start learning.</p>
+          </Panel>
+          <Panel header="Are courses self-paced?" key="2">
+            <p>Yes, you can learn at your own pace with lifetime access.</p>
+          </Panel>
+        </Collapse>
+      </motion.section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
@@ -192,14 +274,12 @@ const UserHome = () => {
             <p className="text-sm">Phone: +123 456 7890</p>
           </div>
           <div>
-            <h4 className="font-bold text-lg">Newsletter</h4>
-            <Input
-              placeholder="Enter your email"
-              className="mt-2 dark:bg-gray-700 dark:text-white"
-            />
-            <Button type="primary" className="mt-2 w-full">
-              Subscribe
-            </Button>
+            <h4 className="font-bold text-lg">
+              ©️ Copyrights - All rights reserved
+            </h4>
+            <h6 className="font-bold text-lg sm:py-4">
+              2025 Devians LMS Platform 🏛️
+            </h6>
           </div>
         </div>
       </footer>
