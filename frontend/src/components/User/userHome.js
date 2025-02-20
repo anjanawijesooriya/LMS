@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, Card, Rate, Switch, Spin, Collapse } from "antd";
+import {
+  Button,
+  Input,
+  Card,
+  Rate,
+  Switch,
+  Spin,
+  Collapse,
+  Dropdown,
+  Avatar,
+} from "antd";
 import {
   SearchOutlined,
   MoonOutlined,
@@ -56,6 +66,36 @@ const UserHome = () => {
     history("/login");
   };
 
+  const firstName = localStorage.getItem("firstname") || "U";
+  const userStatus = localStorage.getItem("status");
+  const profileMenu = (
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
+      <div className="relative flex justify-center">
+        {/* <Avatar className="bg-blue-500" size={40}>
+          {firstName.charAt(0).toUpperCase()}
+        </Avatar>
+        {userStatus && (
+          <span
+            className={`absolute top-0 right-0 text-lg ${
+              userStatus === "active" ? "text-green-500" : "text-yellow-500"
+            }`}
+          >
+            {userStatus === "active" ? "✅" : "⏳"}
+          </span>
+        )} */}
+      </div>
+      <Button type="default" block className="mt-4 mb-2">
+        Profile
+      </Button>
+      <Button type="default" block className="mb-2">
+        Payments
+      </Button>
+      <Button type="default" block onClick={logoutHandler}>
+        Logout
+      </Button>
+    </div>
+  );
+
   return loader ? (
     <center className="mt-80">
       <Spin size="large" />
@@ -72,16 +112,39 @@ const UserHome = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          {localStorage.getItem("status") === "active" ? (
-            <Button type="default">Courses</Button>
-          ) : (
-            <Button type="primary">Enroll</Button>
-          )}
-          <Button type="default">Profile</Button>
-          <Button type="default" onClick={logoutHandler}>
-            Logout
+          <Button
+            type={
+              localStorage.getItem("status") === "active"
+                ? "default"
+                : "primary"
+            }
+            className="!h-10 flex items-center justify-center"
+          >
+            {localStorage.getItem("status") === "active" ? "Courses" : "Enroll"}
           </Button>
-
+          {/* Profile Dropdown */}
+          <Dropdown
+            overlay={profileMenu}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <div className="relative cursor-pointer">
+              <Avatar className="bg-blue-500" size={40}>
+                {firstName.charAt(0).toUpperCase()}
+              </Avatar>
+              {userStatus && (
+                <span
+                  className={`absolute top-0 right-0 text-sm ${
+                    userStatus === "active"
+                      ? "text-green-500"
+                      : "text-yellow-500"
+                  }`}
+                >
+                  {userStatus === "active" ? "✅" : "⏳"}
+                </span>
+              )}
+            </div>
+          </Dropdown>
           {/* <Switch
             checked={darkMode}
             onChange={() => setDarkMode(!darkMode)}
@@ -106,8 +169,12 @@ const UserHome = () => {
             className="w-64 dark:bg-gray-700 dark:text-black"
             prefix={<SearchOutlined />}
           />
-          <Button type="default">Courses</Button>
-          <Button type="primary">Enroll</Button>
+          {localStorage.getItem("status") === "active" ? (
+            <Button type="default">Courses</Button>
+          ) : (
+            <Button type="primary">Enroll</Button>
+          )}
+          {/* Profile Dropdown */}
           <Button type="default">Profile</Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
@@ -168,7 +235,7 @@ const UserHome = () => {
               }
               className="p-4 dark:bg-gray-800"
             >
-              <h4 className="font-bold mt-2">Course Title</h4>
+              <h4 className="font-bold mt-2 dark:text-white">Course Title</h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Instructor Name
               </p>
@@ -191,15 +258,15 @@ const UserHome = () => {
       >
         <h3 className="text-2xl md:text-3xl font-bold">Why Choose Us?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">🏆 Industry-Recognized Certifications</h4>
             <p>Buildup knowledge and boost your career opportunities.</p>
           </Card>
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">📞 24/7 Support & Live Sessions</h4>
             <p>Learn anytime with expert support and live mentoring.</p>
           </Card>
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">✅ Expert Mentors</h4>
             <p>Improve your knowledge with best mentor.</p>
           </Card>
