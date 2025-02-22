@@ -4,6 +4,7 @@ import {
   DeleteOutlined,
   LoadingOutlined,
   EditOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
 import axios from "axios";
@@ -19,6 +20,7 @@ const Classes = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isAddMode, setIsAddMode] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -51,6 +53,7 @@ const Classes = () => {
   const handleDeleteClick = (engClass) => {
     setSelectedClass(engClass);
     setIsEditMode(false);
+    setIsAddMode(false);
     setModalVisible(true);
   };
 
@@ -102,36 +105,84 @@ const Classes = () => {
     if (!selectedClass?._id) return;
 
     setLoading(true);
-    try {
-      const response = await axios.put(`/classes/update/${selectedClass._id}`, updatedData);
-      if (response.data.success) {
-        setData((prevData) =>
-          prevData.map((item) =>
-            item._id === selectedClass._id ? { ...item, ...updatedData } : item
-          )
+    setTimeout(async () => {
+      try {
+        const response = await axios.put(
+          `/classes/update/${selectedClass._id}`,
+          updatedData
         );
-        setFilteredData((prevData) =>
-          prevData.map((item) =>
-            item._id === selectedClass._id ? { ...item, ...updatedData } : item
-          )
-        );
+        if (response.data.success) {
+          setData((prevData) =>
+            prevData.map((item) =>
+              item._id === selectedClass._id
+                ? { ...item, ...updatedData }
+                : item
+            )
+          );
+          setFilteredData((prevData) =>
+            prevData.map((item) =>
+              item._id === selectedClass._id
+                ? { ...item, ...updatedData }
+                : item
+            )
+          );
 
+          notification.success({
+            message: "Success",
+            description: `${updatedData.className} has been updated successfully!`,
+            placement: "topRight",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating class:", error);
+        notification.error({
+          message: "Error",
+          description: "Error updating class. Please try again later.",
+        });
+      } finally {
+        setLoading(false);
+        setModalVisible(false);
+        setSelectedClass(null);
+      }
+    }, 3000);
+  };
+
+  const handleAddClick = () => {
+    setSelectedClass(null);
+    setIsEditMode(false);
+    setIsAddMode(true);
+    setModalVisible(true);
+  };
+
+  const handleAddSubmit = async (newClassData) => {
+    setLoading(true);
+
+    try {
+      const response = await axios.post("/classes/add", newClassData);
+
+      if (response.data.success) {
+        // Re-fetch all classes after adding the new one
+        const res = await axios.get("/classes/");
+        const classes = res.data;
+        setData(classes);
+        setFilteredData(classes);
+
+        // Display success notification
         notification.success({
           message: "Success",
-          description: `${updatedData.className} has been updated successfully!`,
+          description: `Class "${newClassData.className}" added successfully!`,
           placement: "topRight",
         });
       }
     } catch (error) {
-      console.error("Error updating class:", error);
+      console.error("Error adding class:", error);
       notification.error({
         message: "Error",
-        description: "Error updating class. Please try again later.",
+        description: "Error adding class. Please try again later.",
       });
     } finally {
       setLoading(false);
       setModalVisible(false);
-      setSelectedClass(null);
     }
   };
 
@@ -154,14 +205,16 @@ const Classes = () => {
     },
     {
       title: "Class Date",
-      render: (record) => <>{moment(record.classDate).format("DD MMM YYYY")}</>
+      render: (record) => (
+        <>{moment(record?.classDate).format("DD MMM YYYY")}</>
+      ),
     },
     {
       title: "Class Time",
       render: (record) => (
         <>
-          {record.classTime
-            ? moment(record.classTime, "HH:mm").format("hh:mm A") // Convert 24-hour time to 12-hour format
+          {record?.classTime
+            ? moment(record?.classTime, "HH:mm").format("hh:mm A") // Convert 24-hour time to 12-hour format
             : "N/A"}
         </>
       ),
@@ -171,7 +224,11 @@ const Classes = () => {
       render: (record) => (
         <>
           <div className="flex gap-2">
-            <Button type="primary" size="large" onClick={() => handleEditClick(record)}>
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => handleEditClick(record)}
+            >
               <EditOutlined />
             </Button>
             <Button
@@ -190,7 +247,12 @@ const Classes = () => {
 
   return (
     <div className="p-10 bg-white shadow-md rounded-md">
-      <h2 className="text-xl font-semibold mb-4">Classes Management</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Classes Management</h2>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddClick}>
+          New Class
+        </Button>
+      </div>
       <Search
         placeholder="Search by classname"
         enterButton
@@ -215,11 +277,28 @@ const Classes = () => {
       <CustomModal
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
-        onConfirm={isEditMode ? handleEditSubmit : confirmDelete}
+        onConfirm={
+          isEditMode
+            ? handleEditSubmit
+            : isAddMode
+            ? handleAddSubmit
+            : confirmDelete
+        }
         confirmLoading={loading}
-        title={isEditMode ? "Edit Class" : "Confirm Deletion"}
-        content={isEditMode ? null : `Are you sure you want to delete ${selectedClass?.className}?`}
+        title={
+          isEditMode
+            ? "Edit Class"
+            : isAddMode
+            ? "Add Class"
+            : "Confirm Deletion"
+        }
+        content={
+          isEditMode || isAddMode
+            ? null
+            : `Are you sure you want to delete ${selectedClass?.className}?`
+        }
         isEditMode={isEditMode}
+        isAddMode={!isEditMode && !selectedClass} // Pass add mode flag when no class is selected
         initialValues={selectedClass}
       />
     </div>

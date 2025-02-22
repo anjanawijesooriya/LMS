@@ -10,6 +10,7 @@ const CustomModal = ({
   title,
   content,
   isEditMode,
+  isAddMode, // New prop to determine if it's add mode
   initialValues,
 }) => {
   const [form] = Form.useForm();
@@ -25,8 +26,10 @@ const CustomModal = ({
           ? moment(initialValues.classTime, "HH:mm")
           : null, // Convert time string to moment object
       });
+    } else if (isAddMode) {
+      form.resetFields(); // Reset form fields for add mode
     }
-  }, [isEditMode, initialValues, form]);
+  }, [isEditMode, isAddMode, initialValues, form]);
 
   const handleSubmit = () => {
     form
@@ -39,7 +42,7 @@ const CustomModal = ({
             : null, // Convert date to string
           classTime: values.classTime ? values.classTime.format("HH:mm") : null, // Convert time to string
         };
-        onConfirm(formattedValues);
+        onConfirm(formattedValues); // Submit the form data
       })
       .catch((error) => console.error("Validation failed:", error));
   };
@@ -53,21 +56,21 @@ const CustomModal = ({
         <Button key="cancel" onClick={onCancel} disabled={confirmLoading}>
           Cancel
         </Button>,
-        isEditMode ? (
+        isEditMode || isAddMode ? (
           <Button
             key="confirm"
             type="primary"
             loading={confirmLoading}
             onClick={handleSubmit}
           >
-            Save Changes
+            {isAddMode ? "Add Class" : "Save Changes"}
           </Button>
         ) : (
           <Button
             key="confirm"
             type="primary"
             loading={confirmLoading}
-            onClick={onConfirm}
+            onClick={onConfirm} // for delete confirmation
           >
             Yes
           </Button>
@@ -75,7 +78,7 @@ const CustomModal = ({
       ]}
       centered
     >
-      {isEditMode ? (
+      {isEditMode || isAddMode ? (
         <Form form={form} layout="vertical">
           <Form.Item
             label="Class Name"
@@ -114,7 +117,7 @@ const CustomModal = ({
           </Form.Item>
         </Form>
       ) : (
-        <p>{content}</p>
+        <p>{content}</p> // Display deletion confirmation content
       )}
     </Modal>
   );
