@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const { Panel } = Collapse;
 
@@ -24,6 +25,7 @@ const Home = () => {
     localStorage.getItem("theme") === "dark"
   );
   const [loader, setLoader] = useState(true);
+  const [data, setData] = useState([]);
 
   const history = useNavigate();
 
@@ -43,6 +45,19 @@ const Home = () => {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get("/courses/");
+        setData(res.data);
+      } catch (error) {
+        console.log("Error fetching courses:", error);
+      }
+    })();
+  }, []);
+
+  console.log("first", data);
+
   return loader ? (
     <center className="mt-80">
       <Spin size="large" />
@@ -54,11 +69,6 @@ const Home = () => {
         <h1 className="text-xl font-bold">LMS Platform - Devians 🏛️</h1>
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
-          <Input
-            placeholder="Search courses..."
-            className="w-64 dark:bg-gray-700 dark:text-black"
-            prefix={<SearchOutlined />}
-          />
           <Button type="default" onClick={() => history("/login")}>
             Login
           </Button>
@@ -84,11 +94,6 @@ const Home = () => {
       {/* Responsive Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          <Input
-            placeholder="Search courses..."
-            className="w-64 dark:bg-gray-700 dark:text-black"
-            prefix={<SearchOutlined />}
-          />
           <Button type="default" onClick={() => history("/login")}>
             Login
           </Button>
@@ -117,10 +122,7 @@ const Home = () => {
           Join thousands of students learning from top educators
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          <Button type="default" className="bg-white text-blue-600">
-            Explore Courses
-          </Button>
-          <Button type="default" className="border-white text-black">
+          <Button type="default" className="border-white text-black" onClick={() => history("/login")}>
             Get Started
           </Button>
         </div>
@@ -138,26 +140,28 @@ const Home = () => {
           Featured Courses
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {[1, 2, 3, 4].map((_, index) => (
+          {data.map((course, index) => (
             <Card
               key={index}
               hoverable
               cover={
                 <img
                   alt="Course"
-                  src="/course-placeholder.jpg"
-                  className="rounded-lg w-full"
+                  src={course.courseImage}
+                  className="rounded-lg w-full h-40 object-cover"
                 />
               }
               className="p-4 dark:bg-gray-800"
             >
-              <h4 className="font-bold mt-2">Course Title</h4>
+              <h4 className="font-bold mt-2 dark:text-white">
+                {course.courseName}
+              </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Instructor Name
+                {course.instructor}
               </p>
               <Rate disabled defaultValue={5} className="mt-2" />
               <Button type="primary" className="mt-3 w-full">
-                Enroll Now
+                View
               </Button>
             </Card>
           ))}
@@ -172,17 +176,19 @@ const Home = () => {
         variants={fadeInUp}
         viewport={{ once: true }}
       >
-        <h3 className="text-2xl md:text-3xl font-bold">Why Choose Us?</h3>
+        <h3 className="text-2xl md:text-3xl font-bold dark:text-white">
+          Why Choose Us?
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">🏆 Industry-Recognized Certifications</h4>
             <p>Buildup knowledge and boost your career opportunities.</p>
           </Card>
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">📞 24/7 Support & Live Sessions</h4>
             <p>Learn anytime with expert support and live mentoring.</p>
           </Card>
-          <Card className="p-4 dark:bg-gray-800">
+          <Card className="p-4 dark:bg-gray-800 dark:text-white">
             <h4 className="font-bold">✅ Expert Mentors</h4>
             <p>Improve your knowledge with best mentor.</p>
           </Card>

@@ -42,7 +42,7 @@ exports.addCourse = async (req, res) => {
       courseImage,
     });
 
-    res.json({ success: true, course });
+    return res.status(200).json({ success: true, course });
   } catch (error) {
     handleError(error, res);
   }

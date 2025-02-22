@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const { Panel } = Collapse;
 
@@ -34,6 +35,7 @@ const UserHome = () => {
     localStorage.getItem("theme") === "dark"
   );
   const [loader, setLoader] = useState(true);
+  const [data, setData] = useState([]);
 
   const history = useNavigate();
 
@@ -52,6 +54,17 @@ const UserHome = () => {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get("/courses/");
+        setData(res.data);
+      } catch (error) {
+        console.log("Error fetching courses:", error);
+      }
+    })();
+  }, []);
 
   const logoutHandler = () => {
     localStorage.setItem("authToken", null);
@@ -107,11 +120,6 @@ const UserHome = () => {
         <h1 className="text-xl font-bold">LMS Platform - Devians 🏛️</h1>
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
-          <Input
-            placeholder="Search courses..."
-            className="w-64 dark:bg-gray-700 dark:text-black"
-            prefix={<SearchOutlined />}
-          />
           <Button
             type={
               localStorage.getItem("status") === "active"
@@ -164,11 +172,6 @@ const UserHome = () => {
       {/* Responsive Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          <Input
-            placeholder="Search courses..."
-            className="w-64 dark:bg-gray-700 dark:text-black"
-            prefix={<SearchOutlined />}
-          />
           {localStorage.getItem("status") === "active" ? (
             <Button type="default">Courses</Button>
           ) : (
@@ -222,26 +225,28 @@ const UserHome = () => {
           Featured Courses
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {[1, 2, 3, 4].map((_, index) => (
+          {data.map((course, index) => (
             <Card
               key={index}
               hoverable
               cover={
                 <img
                   alt="Course"
-                  src="/course-placeholder.jpg"
-                  className="rounded-lg w-full"
+                  src={course.courseImage}
+                  className="rounded-lg w-full h-40 object-cover"
                 />
               }
               className="p-4 dark:bg-gray-800"
             >
-              <h4 className="font-bold mt-2 dark:text-white">Course Title</h4>
+              <h4 className="font-bold mt-2 dark:text-white">
+                {course.courseName}
+              </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Instructor Name
+                {course.instructor}
               </p>
               <Rate disabled defaultValue={5} className="mt-2" />
               <Button type="primary" className="mt-3 w-full">
-                Enroll Now
+                View
               </Button>
             </Card>
           ))}
