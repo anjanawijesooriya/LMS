@@ -205,9 +205,28 @@ const Classes = () => {
     },
     {
       title: "Class Date",
-      render: (record) => (
-        <>{moment(record?.classDate).format("DD MMM YYYY")}</>
-      ),
+      dataIndex: "classDate",
+      key: "classDate",
+      render: (record) => <>{moment(record).format("DD MMM YYYY")}</>,
+      // Adding filter functionality for classDate
+      filters: [
+        { text: "January", value: "01" },
+        { text: "February", value: "02" },
+        { text: "March", value: "03" },
+        { text: "April", value: "04" },
+        { text: "May", value: "05" },
+        { text: "June", value: "06" },
+        { text: "July", value: "07" },
+        { text: "August", value: "08" },
+        { text: "September", value: "09" },
+        { text: "October", value: "10" },
+        { text: "November", value: "11" },
+        { text: "December", value: "12" },
+      ],
+      onFilter: (value, record) => {
+        const recordMonth = moment(record.classDate).format("MM"); // Ensure it's a moment object and formatted as MM
+        return recordMonth === value;
+      },
     },
     {
       title: "Class Time",
