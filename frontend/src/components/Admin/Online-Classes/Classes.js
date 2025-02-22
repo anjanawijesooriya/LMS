@@ -157,6 +157,16 @@ const Classes = () => {
       render: (record) => <>{moment(record.classDate).format("DD MMM YYYY")}</>
     },
     {
+      title: "Class Time",
+      render: (record) => (
+        <>
+          {record.classTime
+            ? moment(record.classTime, "HH:mm").format("hh:mm A") // Convert 24-hour time to 12-hour format
+            : "N/A"}
+        </>
+      ),
+    },
+    {
       title: "Action",
       render: (record) => (
         <>

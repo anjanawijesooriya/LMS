@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { Modal, Button, Form, Input, DatePicker } from "antd";
-import moment from "moment"; // Import for handling date formats
+import { Modal, Button, Form, Input, DatePicker, TimePicker } from "antd";
+import moment from "moment";
 
 const CustomModal = ({
   visible,
@@ -20,7 +20,10 @@ const CustomModal = ({
         ...initialValues,
         classDate: initialValues.classDate
           ? moment(initialValues.classDate)
-          : null, // Convert string to moment object
+          : null, // Convert date string to moment object
+        classTime: initialValues.classTime
+          ? moment(initialValues.classTime, "HH:mm")
+          : null, // Convert time string to moment object
       });
     }
   }, [isEditMode, initialValues, form]);
@@ -33,7 +36,8 @@ const CustomModal = ({
           ...values,
           classDate: values.classDate
             ? values.classDate.format("YYYY-MM-DD")
-            : null, // Convert moment object to string
+            : null, // Convert date to string
+          classTime: values.classTime ? values.classTime.format("HH:mm") : null, // Convert time to string
         };
         onConfirm(formattedValues);
       })
@@ -100,6 +104,13 @@ const CustomModal = ({
             rules={[{ required: true, message: "Please select class date" }]}
           >
             <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            label="Class Time"
+            name="classTime"
+            rules={[{ required: true, message: "Please select class time" }]}
+          >
+            <TimePicker format="HH:mm" style={{ width: "100%" }} />
           </Form.Item>
         </Form>
       ) : (
