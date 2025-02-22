@@ -1,20 +1,218 @@
 import React, { useState, useEffect } from "react";
-import { Spin } from "antd";
+import { Table, Input, Spin, Button, notification } from "antd";
+import {
+  DeleteOutlined,
+  LoadingOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
+import CustomModal from "../Modal";
+import axios from "axios";
+import moment from "moment";
+
+const { Search } = Input;
 
 const Classes = () => {
   const [loader, setLoader] = useState(true);
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
       setLoader(false);
     }, 3000);
   });
-  return loader ? (
-    <center className="mt-64">
-      <Spin size="large" />
-    </center>
-  ) : (
-    <div>Classes</div>
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get("/classes/");
+        const classes = res.data;
+        setData(classes);
+        setFilteredData(classes);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    })();
+  }, []);
+
+  const handleSearch = (value) => {
+    const filtered = data.filter((engClass) =>
+      engClass.className.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredData(filtered);
+  };
+
+  console.log(filteredData);
+
+  const handleDeleteClick = (engClass) => {
+    setSelectedClass(engClass);
+    setIsEditMode(false);
+    setModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedClass?._id) {
+      notification.error({
+        message: "Error",
+        description: "Invalid class ID",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(async () => {
+      try {
+        await axios.delete(`/classes/delete/${selectedClass._id}`);
+        setData((prevData) =>
+          prevData.filter((engClass) => engClass._id !== selectedClass._id)
+        );
+        setFilteredData((prevData) =>
+          prevData.filter((engClass) => engClass._id !== selectedClass._id)
+        );
+        notification.success({
+          message: "Success",
+          description: `${selectedClass.className} has been deleted successfully!`,
+          placement: "topRight",
+        });
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        notification.error({
+          message: "Error",
+          description: "Error deleting user. Please try again later.",
+        });
+      } finally {
+        setLoading(false);
+        setModalVisible(false);
+        setSelectedClass(null);
+      }
+    }, 3000); // Delay for 3 seconds
+  };
+
+  const handleEditClick = (engClass) => {
+    setSelectedClass(engClass);
+    setIsEditMode(true);
+    setModalVisible(true);
+  };
+
+  const handleEditSubmit = async (updatedData) => {
+    if (!selectedClass?._id) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.put(`/classes/update/${selectedClass._id}`, updatedData);
+      if (response.data.success) {
+        setData((prevData) =>
+          prevData.map((item) =>
+            item._id === selectedClass._id ? { ...item, ...updatedData } : item
+          )
+        );
+        setFilteredData((prevData) =>
+          prevData.map((item) =>
+            item._id === selectedClass._id ? { ...item, ...updatedData } : item
+          )
+        );
+
+        notification.success({
+          message: "Success",
+          description: `${updatedData.className} has been updated successfully!`,
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating class:", error);
+      notification.error({
+        message: "Error",
+        description: "Error updating class. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+      setModalVisible(false);
+      setSelectedClass(null);
+    }
+  };
+
+  const columns = [
+    {
+      title: "Class Name",
+      dataIndex: "className",
+      key: "className",
+      sorter: (a, b) => a.className.localeCompare(b.className),
+    },
+    {
+      title: "Class Link",
+      dataIndex: "classLink",
+      key: "classLink",
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "Class Date",
+      render: (record) => <>{moment(record.classDate).format("DD MMM YYYY")}</>
+    },
+    {
+      title: "Action",
+      render: (record) => (
+        <>
+          <div className="flex gap-2">
+            <Button type="primary" size="large" onClick={() => handleEditClick(record)}>
+              <EditOutlined />
+            </Button>
+            <Button
+              type="primary"
+              danger
+              size="large"
+              onClick={() => handleDeleteClick(record)}
+            >
+              <DeleteOutlined />
+            </Button>
+          </div>
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-10 bg-white shadow-md rounded-md">
+      <h2 className="text-xl font-semibold mb-4">Classes Management</h2>
+      <Search
+        placeholder="Search by classname"
+        enterButton
+        allowClear
+        onSearch={handleSearch}
+        className="mb-4 w-1/2"
+      />
+      {loader ? (
+        <center className="mt-32">
+          <Spin size="large" />
+        </center>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={filteredData}
+          rowKey="id"
+          bordered
+          pagination={{ pageSize: 10 }}
+        />
+      )}
+      {/* Confirmation Modal */}
+      <CustomModal
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onConfirm={isEditMode ? handleEditSubmit : confirmDelete}
+        confirmLoading={loading}
+        title={isEditMode ? "Edit Class" : "Confirm Deletion"}
+        content={isEditMode ? null : `Are you sure you want to delete ${selectedClass?.className}?`}
+        isEditMode={isEditMode}
+        initialValues={selectedClass}
+      />
+    </div>
   );
 };
 

@@ -35,7 +35,9 @@ const Users = () => {
 
   const handleSearch = (value) => {
     const filtered = data.filter((user) =>
-      user.email.toLowerCase().includes(value.toLowerCase())
+      user.email.toLowerCase().includes(value.toLowerCase()) ||
+      user.firstName.toLowerCase().includes(value.toLowerCase()) ||
+      user.lastName.toLowerCase().includes(value.toLowerCase()) // Added this line
     );
     setFilteredData(filtered);
   };
