@@ -14,6 +14,7 @@ import ResetPassword from "./components/Login Register/ResetPassword";
 import Home from "./common/Home";
 import UserHome from "./components/User/userHome";
 import Enroll from "./components/User/Enroll";
+import Classes from "./components/User/Classes";
 
 //Admin
 import Dashboard from "./components/Admin/Dashboard";
@@ -24,7 +25,7 @@ const App = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowButton(window.pageYOffset > 300);
+      setShowButton(window.scrollY > 300);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -39,6 +40,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/passwordreset/:resetToken" element={<ResetPassword />} />
+        {/*logged user*/}
         <Route
           path="/user-dashboard/:username"
           element={
@@ -55,6 +57,15 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/user-classes/:username"
+          element={
+            <PrivateRoute>
+              <Classes />
+            </PrivateRoute>
+          }
+        />
+        {/*admin*/}
         <Route
           path="/admin-dashboard/:username"
           element={

@@ -273,6 +273,39 @@ const Enroll = () => {
             </Form>
           </Card>
         </div>
+        {/* Footer */}
+        <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <h4 className="font-bold text-lg">About</h4>
+              <p className="text-sm mt-2">
+                An innovative learning platform for students worldwide.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">Quick Links</h4>
+              <ul className="text-sm mt-2">
+                <li>Courses</li>
+                <li>Pricing</li>
+                <li>Blog</li>
+                <li>Help Center</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">Contact</h4>
+              <p className="text-sm mt-2">Email: support@lms.com</p>
+              <p className="text-sm">Phone: +123 456 7890</p>
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">
+                ©️ Copyrights - All rights reserved
+              </h4>
+              <h6 className="font-bold text-lg sm:py-4">
+                2025 Devians LMS Platform 🏛️
+              </h6>
+            </div>
+          </div>
+        </footer>
       </div>
     </>
   );
