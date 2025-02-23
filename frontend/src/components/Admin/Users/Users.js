@@ -111,6 +111,11 @@ const Users = () => {
       key: "studentId",
     },
     {
+      title: "Grade",
+      dataIndex: "grade",
+      key: "grade",
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
