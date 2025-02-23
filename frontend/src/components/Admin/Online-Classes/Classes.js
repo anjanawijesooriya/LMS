@@ -174,6 +174,7 @@ const Classes = ({ onUpdate }) => {
           description: `Class "${newClassData.className}" added successfully!`,
           placement: "topRight",
         });
+        onUpdate();
       }
     } catch (error) {
       console.error("Error adding class:", error);
