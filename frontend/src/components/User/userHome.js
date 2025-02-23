@@ -180,7 +180,14 @@ const UserHome = () => {
           {localStorage.getItem("status") === "active" ? (
             <Button type="default">Classes</Button>
           ) : (
-            <Button type="primary" onClick={() => history(`/user-enroll/${localStorage.getItem("firstname")}`)}>Enroll</Button>
+            <Button
+              type="primary"
+              onClick={() =>
+                history(`/user-enroll/${localStorage.getItem("firstname")}`)
+              }
+            >
+              Enroll
+            </Button>
           )}
           {/* Profile Dropdown */}
           <Button type="default">Profile</Button>
@@ -210,12 +217,24 @@ const UserHome = () => {
           Join thousands of students learning from top educators
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          <Button type="default" className="bg-white text-blue-600">
-            Explore Courses
-          </Button>
-          <Button type="default" className="border-white text-black">
-            Get Started
-          </Button>
+          {userStatus === "active" ? (
+            <Button type="default" className="bg-white text-blue-600">
+              Explore Courses
+            </Button>
+          ) : null}
+          {userStatus !== "active" ? (
+            <Button
+              type="default"
+              className="border-white text-black"
+              onClick={() =>
+                userStatus !== "active"
+                  ? history(`/user-enroll/${firstName}`)
+                  : null
+              }
+            >
+              Get Started
+            </Button>
+          ) : null}
         </div>
       </header>
 
