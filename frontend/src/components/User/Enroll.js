@@ -1,9 +1,281 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import {
+  Button,
+  Input,
+  Card,
+  Rate,
+  Switch,
+  Spin,
+  Collapse,
+  Dropdown,
+  Avatar,
+  Form,
+  Upload,
+  message,
+  Select,
+} from "antd";
+import {
+  SearchOutlined,
+  MoonOutlined,
+  SunOutlined,
+  CloseOutlined,
+  MenuOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const { Dragger } = Upload;
+const { Option } = Select;
+
+const { Panel } = Collapse;
 
 const Enroll = () => {
-  return (
-    <div>Enroll</div>
-  )
-}
+  const [loader, setLoader] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+  const [available, setAvailable] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-export default Enroll
+  const history = useNavigate();
+
+  // Get user details from localStorage
+  const lastName = localStorage.getItem("lastname") || "";
+  const studentId = localStorage.getItem("studentID") || "";
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoader(false);
+    }, 3000);
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  const logoutHandler = () => {
+    localStorage.setItem("authToken", null);
+    localStorage.removeItem("firstname");
+    localStorage.removeItem("lastname");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("status");
+    localStorage.removeItem("studentID");
+    localStorage.removeItem("id");
+    setAvailable(false);
+    history("/login");
+  };
+
+  const firstName = localStorage.getItem("firstname") || "U";
+  const userStatus = localStorage.getItem("status");
+  const profileMenu = (
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
+      <div className="relative flex justify-center">
+        {/* <Avatar className="bg-blue-500" size={40}>
+          {firstName.charAt(0).toUpperCase()}
+        </Avatar>
+        {userStatus && (
+          <span
+            className={`absolute top-0 right-0 text-lg ${
+              userStatus === "active" ? "text-green-500" : "text-yellow-500"
+            }`}
+          >
+            {userStatus === "active" ? "✅" : "⏳"}
+          </span>
+        )} */}
+      </div>
+      <Button type="default" block className="mt-4 mb-2">
+        Profile
+      </Button>
+      <Button type="default" block className="mb-2">
+        Payments
+      </Button>
+      <Button type="default" block onClick={logoutHandler}>
+        Logout
+      </Button>
+    </div>
+  );
+
+  return loader ? (
+    <center className="mt-80">
+      <Spin size="large" />
+    </center>
+  ) : (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+        {/* Navbar */}
+        <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
+          <h1 className="text-xl font-bold">LMS Platform - Devians 🏛️</h1>
+          {/* Desktop Menu */}
+          <div className="hidden md:flex gap-4">
+            <Button
+              type={
+                localStorage.getItem("status") === "active"
+                  ? "default"
+                  : "primary"
+              }
+              className="!h-10 flex items-center justify-center"
+            >
+              {localStorage.getItem("status") === "active"
+                ? "Classes"
+                : "Enroll"}
+            </Button>
+            {/* Profile Dropdown */}
+            <Dropdown
+              overlay={profileMenu}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
+              <div className="relative cursor-pointer">
+                <Avatar className="bg-blue-500" size={40}>
+                  {firstName.charAt(0).toUpperCase()}
+                </Avatar>
+                {userStatus && (
+                  <span
+                    className={`absolute top-0 right-0 text-sm ${
+                      userStatus === "active"
+                        ? "text-green-500"
+                        : "text-yellow-500"
+                    }`}
+                  >
+                    {userStatus === "active" ? "✅" : "⏳"}
+                  </span>
+                )}
+              </div>
+            </Dropdown>
+            {/* <Switch
+      checked={darkMode}
+      onChange={() => setDarkMode(!darkMode)}
+      checkedChildren="🌙"
+      unCheckedChildren="☀️"
+    /> */}
+          </div>
+
+          {/* Mobile & Medium Menu Toggle */}
+          <div className="md:hidden">
+            <Button type="default" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
+            </Button>
+          </div>
+        </nav>
+
+        {/* Responsive Mobile Menu */}
+        {menuOpen && (
+          <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
+            {localStorage.getItem("status") === "active" ? (
+              <Button type="default">Classes</Button>
+            ) : (
+              <Button type="primary">Enroll</Button>
+            )}
+            {/* Profile Dropdown */}
+            <Button type="default">Profile</Button>
+            <Button type="default">Payments</Button>
+            <Button type="default" onClick={logoutHandler}>
+              Logout
+            </Button>
+            <Switch
+              checked={darkMode}
+              onChange={() => setDarkMode(!darkMode)}
+              checkedChildren="🌙"
+              unCheckedChildren="☀️"
+            />
+          </div>
+        )}
+        <div className="min-h-screen flex items-center justify-center p-4 mt-10 dark:text-white">
+          <Card className="w-full max-w-lg shadow-lg p-6 bg-white rounded-lg mt-6">
+            <h2 className="text-2xl font-semibold text-center mb-4">
+              Add Payment Details
+            </h2>
+            <Form layout="vertical">
+              <Form.Item label="First Name" name="firstName">
+                <Input
+                  value={firstName}
+                  disabled
+                  className="dark:bg-gray-700 dark:text-white"
+                />
+              </Form.Item>
+              <Form.Item label="Last Name" name="lastName">
+                <Input
+                  value={lastName}
+                  disabled
+                  className="dark:bg-gray-700 dark:text-white"
+                />
+              </Form.Item>
+              <Form.Item label="Student ID" name="studentId">
+                <Input
+                  value={studentId}
+                  disabled
+                  className="dark:bg-gray-700 dark:text-white"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Amount"
+                name="amount"
+                rules={[
+                  { required: true, message: "Please enter the amount!" },
+                ]}
+              >
+                <Input type="number" placeholder="Enter amount" />
+              </Form.Item>
+              <Form.Item
+                label="Month"
+                name="month"
+                rules={[{ required: true, message: "Please select a month!" }]}
+              >
+                <Select placeholder="Select Month">
+                  {[
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                  ].map((month) => (
+                    <Option key={month} value={month}>
+                      {month}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item label="Remarks" name="remarks">
+                <Input.TextArea placeholder="Optional remarks" rows={3} />
+              </Form.Item>
+              <Form.Item label="Payment Slip" name="paymentSlip">
+                <Dragger name="file" showUploadList={false}>
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined />
+                  </p>
+                  <p className="ant-upload-text">
+                    Click or drag file to upload
+                  </p>
+                  <p className="ant-upload-hint">
+                    Supported formats: JPG, PNG, PDF
+                  </p>
+                </Dragger>
+              </Form.Item>
+              <Button type="primary" htmlType="submit" block>
+                Submit
+              </Button>
+            </Form>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Enroll;

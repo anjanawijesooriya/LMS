@@ -13,6 +13,7 @@ import Register from "./components/Login Register/Register";
 import ResetPassword from "./components/Login Register/ResetPassword";
 import Home from "./common/Home";
 import UserHome from "./components/User/userHome";
+import Enroll from "./components/User/Enroll";
 
 //Admin
 import Dashboard from "./components/Admin/Dashboard";
@@ -43,6 +44,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <UserHome />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user-enroll/:username"
+          element={
+            <PrivateRoute>
+              <Enroll />
             </PrivateRoute>
           }
         />

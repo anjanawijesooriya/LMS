@@ -127,8 +127,13 @@ const UserHome = () => {
                 : "primary"
             }
             className="!h-10 flex items-center justify-center"
+            onClick={() =>
+              localStorage.getItem("status") === "active"
+                ? null
+                : history(`/user-enroll/${localStorage.getItem("firstname")}`)
+            }
           >
-            {localStorage.getItem("status") === "active" ? "Courses" : "Enroll"}
+            {localStorage.getItem("status") === "active" ? "Classes" : "Enroll"}
           </Button>
           {/* Profile Dropdown */}
           <Dropdown
@@ -173,12 +178,13 @@ const UserHome = () => {
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
           {localStorage.getItem("status") === "active" ? (
-            <Button type="default">Courses</Button>
+            <Button type="default">Classes</Button>
           ) : (
-            <Button type="primary">Enroll</Button>
+            <Button type="primary" onClick={() => history(`/user-enroll/${localStorage.getItem("firstname")}`)}>Enroll</Button>
           )}
           {/* Profile Dropdown */}
           <Button type="default">Profile</Button>
+          <Button type="default">Payments</Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
           </Button>
