@@ -25,6 +25,12 @@ const UserSchema = new Schema(
       ],
     },
 
+    telephoneNumber: {
+      type: String,
+      required: [true, "Please enter a valid telephone number"],
+      match: [/^\d{10,15}$/, "Please enter a valid phone number"],
+    },
+
     password: { type: String, required: true, select: false, minlength: 6 },
 
     resetPasswordToken: String,

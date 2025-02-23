@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
+import { FaUser, FaLock, FaEnvelope, FaPhone } from "react-icons/fa";
 import { notification, Spin } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -11,6 +11,7 @@ const Register = () => {
     lastName: "",
     email: "",
     grade: "",
+    telephoneNumber: "",
     password: "",
     confirmPassword: "",
   });
@@ -19,59 +20,107 @@ const Register = () => {
 
   const navigate = useNavigate();
 
-  const validateField = (name, value) => {
-    let errorMsg = "";
+  // const validateField = (name, value) => {
+  //   let errorMsg = "";
 
-    switch (name) {
-      case "firstName":
-        if (!value.trim()) errorMsg = "First Name is required";
-        break;
-      case "lastName":
-        if (!value.trim()) errorMsg = "Last Name is required";
-        break;
-      case "email":
-        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value))
-          errorMsg = "Enter a valid email";
-        break;
-      case "password":
-        if (value.length < 6 || value.length > 20)
-          errorMsg = "Password must be 6-20 characters long";
-        break;
-      case "confirmPassword":
-        if (value !== formData.password) errorMsg = "Passwords do not match";
-        break;
-      case "grade":
-        if (!value) errorMsg = "Grade is required";
-        break;
-      default:
-        break;
-    }
+  //   switch (name) {
+  //     case "firstName":
+  //       if (!value.trim()) errorMsg = "First Name is required";
+  //       break;
+  //     case "lastName":
+  //       if (!value.trim()) errorMsg = "Last Name is required";
+  //       break;
+  //     case "email":
+  //       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value))
+  //         errorMsg = "Enter a valid email";
+  //       break;
+  //     case "telephoneNumber":
+  //       if (!/^\d{10}$/.test(value))
+  //         errorMsg = "Enter a valid 10-digit phone number";
+  //       break;
+  //     case "password":
+  //       if (value.length < 6 || value.length > 20)
+  //         errorMsg = "Password must be 6-20 characters long";
+  //       break;
+  //     case "confirmPassword":
+  //       if (value !== formData.password) errorMsg = "Passwords do not match";
+  //       break;
+  //     case "grade":
+  //       if (!value) errorMsg = "Grade is required";
+  //       break;
+  //     default:
+  //       break;
+  //   }
 
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMsg }));
-  };
+  //   setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMsg }));
+
+  //   // Clear error message after 3 seconds
+  // if (errorMsg) {
+  //   setTimeout(() => {
+  //     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+  //   }, 3000);
+  // }
+  // };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleBlur = (e) => {
-    validateField(e.target.name, e.target.value);
-  };
+  // const handleBlur = (e) => {
+  //   validateField(e.target.name, e.target.value);
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields before submitting
     let newErrors = {};
     Object.keys(formData).forEach((key) => {
-      validateField(key, formData[key]);
-      if (!formData[key]) newErrors[key] = `${key} is required`;
+      let errorMsg = "";
+  
+      // Run validation manually instead of calling validateField
+      switch (key) {
+        case "firstName":
+          if (!formData[key].trim()) errorMsg = "First Name is required";
+          break;
+        case "lastName":
+          if (!formData[key].trim()) errorMsg = "Last Name is required";
+          break;
+        case "email":
+          if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData[key]))
+            errorMsg = "Enter a valid email";
+          break;
+        case "telephoneNumber":
+          if (!/^\d{10}$/.test(formData[key]))
+            errorMsg = "Enter a valid 10-digit phone number";
+          break;
+        case "password":
+          if (formData[key].length < 6 || formData[key].length > 20)
+            errorMsg = "Password must be 6-20 characters long";
+          break;
+        case "confirmPassword":
+          if (formData[key] !== formData.password) errorMsg = "Passwords do not match";
+          break;
+        case "grade":
+          if (!formData[key]) errorMsg = "Grade is required";
+          break;
+        default:
+          break;
+      }
+  
+      if (errorMsg) {
+        newErrors[key] = errorMsg;
+        setTimeout(() => {
+          setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
+        }, 3000);
+      }
     });
-
-    if (Object.values(newErrors).some((err) => err)) {
+  
+    if (Object.values(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
+    // Validate all fields before submitting
 
     setLoading(true);
 
@@ -126,6 +175,12 @@ const Register = () => {
               type: "email",
             },
             {
+              name: "telephoneNumber",
+              icon: <FaPhone />,
+              placeholder: "Phone Number",
+              type: "number",
+            },
+            {
               name: "password",
               icon: <FaLock />,
               placeholder: "Password",
@@ -148,7 +203,7 @@ const Register = () => {
                 placeholder={placeholder}
                 value={formData[name]}
                 onChange={handleChange}
-                onBlur={handleBlur}
+                
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white ${
                   errors[name] ? "border-red-500" : ""
                 }`}
@@ -164,7 +219,7 @@ const Register = () => {
               name="grade"
               value={formData.grade}
               onChange={handleChange}
-              onBlur={handleBlur}
+         
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 text-gray-500 ${
                 errors.grade ? "border-red-500" : ""
               }`}

@@ -12,7 +12,7 @@ import moment from "moment";
 
 const { Search } = Input;
 
-const Classes = () => {
+const Classes = ({ onUpdate }) => {
   const [loader, setLoader] = useState(true);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -81,6 +81,7 @@ const Classes = () => {
           description: `${selectedClass.className} has been deleted successfully!`,
           placement: "topRight",
         });
+        onUpdate();
       } catch (error) {
         console.error("Error deleting user:", error);
         notification.error({

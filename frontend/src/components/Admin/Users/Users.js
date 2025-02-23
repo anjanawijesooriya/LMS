@@ -6,7 +6,7 @@ import axios from "axios";
 
 const { Search } = Input;
 
-const Users = () => {
+const Users = ({ onUpdate }) => {
   const [loader, setLoader] = useState(true);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -34,10 +34,11 @@ const Users = () => {
   }, []);
 
   const handleSearch = (value) => {
-    const filtered = data.filter((user) =>
-      user.email.toLowerCase().includes(value.toLowerCase()) ||
-      user.firstName.toLowerCase().includes(value.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(value.toLowerCase()) // Added this line
+    const filtered = data.filter(
+      (user) =>
+        user.email.toLowerCase().includes(value.toLowerCase()) ||
+        user.firstName.toLowerCase().includes(value.toLowerCase()) ||
+        user.lastName.toLowerCase().includes(value.toLowerCase()) // Added this line
     );
     setFilteredData(filtered);
   };
@@ -73,6 +74,7 @@ const Users = () => {
           description: `${selectedUser.firstName} has been deleted successfully!`,
           placement: "topRight",
         });
+        onUpdate();
       } catch (error) {
         console.error("Error deleting user:", error);
         notification.error({
@@ -114,6 +116,11 @@ const Users = () => {
       title: "Grade",
       dataIndex: "grade",
       key: "grade",
+    },
+    {
+      title: "Telephone Number",
+      dataIndex: "telephoneNumber",
+      key: "telephoneNumber",
     },
     {
       title: "Status",

@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button, Spin, Card, Statistic, Carousel, List, Avatar } from "antd";
+import {
+  Layout,
+  Menu,
+  Button,
+  Spin,
+  Card,
+  Statistic,
+  Carousel,
+  List,
+  Avatar,
+} from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   UserOutlined,
@@ -8,7 +18,7 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   LogoutOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import Users from "./Users/Users";
 import Classes from "./Online-Classes/Classes";
@@ -33,23 +43,24 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/api/auth/get");
-        const students = res.data.filter((user) => user.role === "student");
-        setStdData(students);
-
-        const cls = await axios.get("/classes/");
-        setClsData(cls.data);
-
-        const payment = await axios.get("/payments/");
-        setPayData(payment.data);
-
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    })();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("/api/auth/get");
+      const students = res.data.filter((user) => user.role === "student");
+      setStdData(students);
+
+      const cls = await axios.get("/classes/");
+      setClsData(cls.data);
+
+      const payment = await axios.get("/payments/");
+      setPayData(payment.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const queryParams = new URLSearchParams(location.search);
   const selectedTab = queryParams.get("tab") || "overview"; // Default to 'overview'
@@ -73,24 +84,39 @@ const Dashboard = () => {
 
   // Simulated Data for Summaries
   const summaryData = {
-    users: usersCount, 
+    users: usersCount,
     classes: clsCount,
     payments: 45000,
   };
 
   const recentActivities = [
-    { id: 1, name: "John Doe", action: "Enrolled in React Course", time: "2 hours ago" },
-    { id: 2, name: "Jane Smith", action: "Made a payment of $50", time: "3 hours ago" },
-    { id: 3, name: "Alice Johnson", action: "Completed JavaScript Course", time: "5 hours ago" },
+    {
+      id: 1,
+      name: "John Doe",
+      action: "Enrolled in React Course",
+      time: "2 hours ago",
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      action: "Made a payment of $50",
+      time: "3 hours ago",
+    },
+    {
+      id: 3,
+      name: "Alice Johnson",
+      action: "Completed JavaScript Course",
+      time: "5 hours ago",
+    },
   ];
 
   // Render Content Based on Query Param
   const renderContent = () => {
     switch (selectedTab) {
       case "users":
-        return <Users />;
+        return <Users onUpdate={fetchData} />;
       case "classes":
-        return <Classes />;
+        return <Classes onUpdate={fetchData} />;
       case "payments":
         return <Payments />;
       case "overview":
@@ -99,13 +125,25 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Summary Cards */}
             <Card>
-              <Statistic title="Total Users" value={summaryData.users} prefix={<UserOutlined />} />
+              <Statistic
+                title="Total Users"
+                value={summaryData.users}
+                prefix={<UserOutlined />}
+              />
             </Card>
             <Card>
-              <Statistic title="Total Classes" value={summaryData.classes} prefix={<BookOutlined />} />
+              <Statistic
+                title="Total Classes"
+                value={summaryData.classes}
+                prefix={<BookOutlined />}
+              />
             </Card>
             <Card>
-              <Statistic title="Total Revenue" value={`Rs.${summaryData.payments}`} prefix={<DollarOutlined />} />
+              <Statistic
+                title="Total Revenue"
+                value={`Rs.${summaryData.payments}`}
+                prefix={<DollarOutlined />}
+              />
             </Card>
 
             {/* Recent Activities */}
@@ -162,19 +200,42 @@ const Dashboard = () => {
   ) : (
     <Layout className="min-h-screen">
       {/* Sidebar */}
-      <Sider trigger={null} collapsible collapsed={collapsed} className="bg-gray-900">
-        <div className="p-4 text-white text-lg text-center font-bold">Admin Panel</div>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        className="bg-gray-900"
+      >
+        <div className="p-4 text-white text-lg text-center font-bold">
+          Admin Panel
+        </div>
         <Menu theme="dark" mode="inline" selectedKeys={[selectedTab]}>
-          <Menu.Item key="overview" icon={<AppstoreOutlined />} onClick={() => handleMenuClick("overview")}>
+          <Menu.Item
+            key="overview"
+            icon={<AppstoreOutlined />}
+            onClick={() => handleMenuClick("overview")}
+          >
             Overview
           </Menu.Item>
-          <Menu.Item key="users" icon={<UserOutlined />} onClick={() => handleMenuClick("users")}>
+          <Menu.Item
+            key="users"
+            icon={<UserOutlined />}
+            onClick={() => handleMenuClick("users")}
+          >
             Users
           </Menu.Item>
-          <Menu.Item key="classes" icon={<BookOutlined />} onClick={() => handleMenuClick("classes")}>
+          <Menu.Item
+            key="classes"
+            icon={<BookOutlined />}
+            onClick={() => handleMenuClick("classes")}
+          >
             Classes
           </Menu.Item>
-          <Menu.Item key="payments" icon={<DollarOutlined />} onClick={() => handleMenuClick("payments")}>
+          <Menu.Item
+            key="payments"
+            icon={<DollarOutlined />}
+            onClick={() => handleMenuClick("payments")}
+          >
             Payments
           </Menu.Item>
         </Menu>
@@ -188,13 +249,19 @@ const Dashboard = () => {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
           />
-          <Button type="primary" icon={<LogoutOutlined />} onClick={logoutHandler}>
+          <Button
+            type="primary"
+            icon={<LogoutOutlined />}
+            onClick={logoutHandler}
+          >
             Logout
           </Button>
         </Header>
 
         {/* Main Content */}
-        <Content className="m-4 p-4 bg-white shadow-md rounded-lg">{renderContent()}</Content>
+        <Content className="m-4 p-4 bg-white shadow-md rounded-lg">
+          {renderContent()}
+        </Content>
       </Layout>
     </Layout>
   );
