@@ -6,7 +6,7 @@ const resetPasswordTemplate = require("../utils/emailTemplates/resetPasswordTemp
 
 // 🔹 **Register Student**
 exports.register = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, grade } = req.body;
 
   try {
     const user = await User.create({
@@ -14,6 +14,7 @@ exports.register = async (req, res) => {
       lastName,
       email,
       password,
+      grade,
     });
 
     sendToken(user, 201, res);
@@ -184,12 +185,12 @@ exports.getProfile = async (req, res) => {
 
 // 🔹 **Edit User**
 exports.editUser = async (req, res) => {
-  const { firstName, lastName, email } = req.body;
+  const { firstName, lastName, email, grade } = req.body;
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { firstName, lastName, email },
+      { firstName, lastName, email, grade },
       { new: true }
     );
 
@@ -231,6 +232,7 @@ const sendToken = (user, statusCode, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      grade: user.grade,
       studentId: user.studentId, // Ensure it's included
       membership: user.membership,
       isApproved: user.isApproved, // Ensure it's included

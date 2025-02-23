@@ -75,6 +75,7 @@ const UserHome = () => {
     localStorage.removeItem("status");
     localStorage.removeItem("studentID");
     localStorage.removeItem("id");
+    localStorage.removeItem("grade");
     setAvailable(false);
     history("/login");
   };

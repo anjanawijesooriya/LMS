@@ -10,6 +10,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
+    grade: "",
     password: "",
     confirmPassword: "",
   });
@@ -38,6 +39,9 @@ const Register = () => {
         break;
       case "confirmPassword":
         if (value !== formData.password) errorMsg = "Passwords do not match";
+        break;
+      case "grade":
+        if (!value) errorMsg = "Grade is required";
         break;
       default:
         break;
@@ -82,7 +86,7 @@ const Register = () => {
         placement: "top",
       });
 
-      setTimeout(() => navigate("/"), 3000);
+      setTimeout(() => navigate("/login"), 3000);
     } catch (error) {
       notification.error({
         message: "Error",
@@ -154,6 +158,31 @@ const Register = () => {
               )}
             </div>
           ))}
+
+          <div className="mb-4 relative">
+            <select
+              name="grade"
+              value={formData.grade}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 text-gray-500 ${
+                errors.grade ? "border-red-500" : ""
+              }`}
+            >
+              <option value="">Select Grade</option>
+              {[
+                "Pre-school",
+                ...Array.from({ length: 13 }, (_, i) => `Grade ${i + 1}`),
+              ].map((grade) => (
+                <option key={grade} value={grade}>
+                  {grade}
+                </option>
+              ))}
+            </select>
+            {errors.grade && (
+              <p className="text-red-500 text-sm">{errors.grade}</p>
+            )}
+          </div>
 
           <button
             type="submit"

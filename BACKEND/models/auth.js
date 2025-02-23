@@ -30,6 +30,11 @@ const UserSchema = new Schema(
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 
+    grade: {
+      type: String,
+      required: [true, "Please enter grade"],
+    },
+
     role: {
       type: String,
       enum: ["student", "admin", "teacher"],

@@ -19,7 +19,6 @@ const Login = () => {
 
   const history = useNavigate();
 
-
   const validateEmail = (email) => {
     return /^[\w-.]+@[\w-]+\.[a-z]{2,}$/.test(email);
   };
@@ -69,6 +68,7 @@ const Login = () => {
       if (data?.user.role === "student") {
         localStorage.setItem("status", data?.user.membership?.status);
         localStorage.setItem("studentID", data.user.studentId);
+        localStorage.setItem("grade", data?.user.grade);
       }
       localStorage.setItem("id", data.user.id);
 
@@ -100,7 +100,7 @@ const Login = () => {
     }
   };
 
-  return(
+  return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 w-full max-w-md">
         <h2
