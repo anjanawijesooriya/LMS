@@ -25,6 +25,11 @@ const ClassSchema = new Schema({
     required: [true, "Please enter the class date"],
   },
 
+  classGrade: {
+    type: String,
+    required: [true, "Please enter grade"],
+  },
+
   classTime: {
     type: String, // Storing time as a string in "HH:mm" format
     required: [true, "Please enter the class time"],

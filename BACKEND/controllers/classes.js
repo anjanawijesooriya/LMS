@@ -2,7 +2,7 @@ const Class = require("../models/classes");
 
 exports.addClass = async (req, res) => {
   try {
-    const { className, classLink, description, classDate, classTime } =
+    const { className, classLink, description, classDate, classTime, classGrade } =
       req.body;
 
     const isAvailable = await Class.findOne({
@@ -21,6 +21,7 @@ exports.addClass = async (req, res) => {
       description,
       classDate: new Date(classDate),
       classTime,
+      classGrade,
     });
 
     const savedClass = await newClass.save();
@@ -48,12 +49,12 @@ exports.getClass = async (req, res) => {
 exports.editClass = async (req, res) => {
   const { id } = req.params;
 
-  const { className, classLink, description, classDate, classTime } = req.body;
+  const { className, classLink, description, classDate, classTime, classGrade } = req.body;
 
   try {
     const updatedClass = await Class.findByIdAndUpdate(
       id,
-      { className, classLink, description, classDate, classTime },
+      { className, classLink, description, classDate, classTime, classGrade },
       { new: true } // This option ensures that the updated document is returned
     );
 

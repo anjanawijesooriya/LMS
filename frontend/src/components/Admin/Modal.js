@@ -1,6 +1,16 @@
 import React, { useEffect } from "react";
-import { Modal, Button, Form, Input, DatePicker, TimePicker } from "antd";
+import {
+  Modal,
+  Button,
+  Form,
+  Input,
+  DatePicker,
+  TimePicker,
+  Select,
+} from "antd";
 import moment from "moment";
+
+const { Option } = Select;
 
 const CustomModal = ({
   visible,
@@ -100,6 +110,34 @@ const CustomModal = ({
             rules={[{ required: true, message: "Please enter description" }]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            label="Class Grade"
+            name="classGrade"
+            rules={[{ required: true, message: "Please select a Grade!" }]}
+          >
+            <Select placeholder="Select Grade">
+              {[
+                "Pre-School",
+                "Grade 1",
+                "Grade 2",
+                "Grade 3",
+                "Grade 4",
+                "Grade 5",
+                "Grade 6",
+                "Grade 7",
+                "Grade 8",
+                "Grade 9",
+                "Grade 10",
+                "Grade 11",
+                "Grade 12",
+                "Grade 13",
+              ].map((grade) => (
+                <Option key={grade} value={grade}>
+                  {grade}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item
             label="Class Date"

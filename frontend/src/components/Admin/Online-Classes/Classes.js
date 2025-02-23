@@ -205,6 +205,11 @@ const Classes = ({ onUpdate }) => {
       key: "description",
     },
     {
+      title: "Class Grade",
+      dataIndex: "classGrade",
+      key: "classGrade",
+    },
+    {
       title: "Class Date",
       dataIndex: "classDate",
       key: "classDate",
