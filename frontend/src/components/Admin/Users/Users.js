@@ -38,7 +38,8 @@ const Users = ({ onUpdate }) => {
       (user) =>
         user.email.toLowerCase().includes(value.toLowerCase()) ||
         user.firstName.toLowerCase().includes(value.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(value.toLowerCase()) // Added this line
+        user.lastName.toLowerCase().includes(value.toLowerCase()) ||
+        user.studentId.toLowerCase().includes(value.toLowerCase()) // Added this line
     );
     setFilteredData(filtered);
   };
