@@ -201,7 +201,7 @@ const Classes = () => {
                   : "hover:scale-105"
               }`}
               onClick={() =>
-                !isFutureMonth && history(`/classes/${month.toLowerCase()}`)
+                !isFutureMonth && history(`/classes/${firstName}/${month.toLowerCase()}`)
               }
               style={{
                 backgroundImage: `url("https://media.istockphoto.com/id/847375436/photo/word-learn-english-made-with-carved-letters-onyellow-desk-with-office-or-school-supplies.jpg?s=612x612&w=0&k=20&c=WpmGcNkhcTBY3sYijXynZVYIp0IBo3vLnWXGfPI2IoA=")`,
