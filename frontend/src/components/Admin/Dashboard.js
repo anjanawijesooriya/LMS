@@ -89,26 +89,12 @@ const Dashboard = () => {
     payments: 45000,
   };
 
-  const recentActivities = [
-    {
-      id: 1,
-      name: "John Doe",
-      action: "Enrolled in React Course",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      action: "Made a payment of $50",
-      time: "3 hours ago",
-    },
-    {
-      id: 3,
-      name: "Alice Johnson",
-      action: "Completed JavaScript Course",
-      time: "5 hours ago",
-    },
-  ];
+  // Get Upcoming Classes closer to today's date
+  const today = new Date();
+  const upcomingClasses = clsData
+    .filter((cls) => new Date(cls.classDate) > today)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 4);
 
   // Render Content Based on Query Param
   const renderContent = () => {
@@ -151,13 +137,17 @@ const Dashboard = () => {
               <h3 className="text-lg font-bold mb-4">UpComing Classes</h3>
               <List
                 itemLayout="horizontal"
-                dataSource={recentActivities}
+                dataSource={upcomingClasses}
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} />}
-                      title={<span className="font-semibold">{item.name}</span>}
-                      description={`${item.action} - ${item.time}`}
+                      avatar={<Avatar icon={<BookOutlined />} />}
+                      title={
+                        <span className="font-semibold">{item.className}</span>
+                      }
+                      description={`${new Date(
+                        item.classDate
+                      ).toLocaleDateString()} at ${item.classTime}`}
                     />
                   </List.Item>
                 )}
