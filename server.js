@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const cloudinary = require("./BACKEND/utils/cloudinary");
 
 dotenv.config();
 
