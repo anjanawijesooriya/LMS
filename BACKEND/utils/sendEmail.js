@@ -13,7 +13,7 @@ const sendEmail = (options) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: `"LMS Platform" <${process.env.EMAIL_FROM}>`,
     to: options.to,
     subject: options.subject,
     html: options.html,

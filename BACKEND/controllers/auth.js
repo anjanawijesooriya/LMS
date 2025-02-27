@@ -19,6 +19,25 @@ exports.register = async (req, res) => {
       telephoneNumber,
     });
 
+    // Send Welcome Email
+    const message = `
+      <h1>Welcome to Devians - LMS Platform 🎉</h1>
+      <p>Hello ${firstName} ${lastName},</p>
+      <p>Your account has been successfully created!</p>
+      <p>Now you can login to our online learning platform.</p>
+      <p>Email: ${email}</p>
+      <p>Grade: ${grade}</p>
+      <p>Thank you for joining with us!</p>
+      <br>
+      <strong>Devians Team</strong>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Welcome to Devians - LMS Platform",
+      html: message,
+    });
+
     sendToken(user, 201, res);
   } catch (error) {
     handleError(error, res);
