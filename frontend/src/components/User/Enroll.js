@@ -40,6 +40,7 @@ const Enroll = () => {
   const [loading, setLoading] = useState(false);
 
   const history = useNavigate();
+  const [form] = Form.useForm();
 
   // Get user details from localStorage
   const lastName = localStorage.getItem("lastname") || "";
@@ -61,6 +62,14 @@ const Enroll = () => {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    form.setFieldsValue({
+      firstName: localStorage.getItem("firstname") || "",
+      lastName: localStorage.getItem("lastname") || "",
+      studentId: localStorage.getItem("studentID") || "",
+    });
+  }, []);
+
   const logoutHandler = () => {
     localStorage.setItem("authToken", null);
     localStorage.removeItem("firstname");
@@ -72,6 +81,42 @@ const Enroll = () => {
     localStorage.removeItem("id");
     setAvailable(false);
     history("/login");
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const values = await form.validateFields();
+      const { firstName, lastName, studentId, amount, month, remarks } = values;
+
+      const requestData = {
+        firstName,
+        lastName,
+        studentId,
+        amount,
+        month,
+        remarks,
+      };
+
+      console.log("Submitted Data:", requestData);
+
+      const { data } = await axios.post("/payments/add", requestData);
+
+      if (data.success) {
+        setTimeout(() => {
+          message.success("Payment details submitted successfully!");
+          form.resetFields();
+          setLoading(false);
+        }, 3000);
+      } else {
+        message.error(data.message || "Something went wrong!");
+      }
+    } catch (error) {
+      message.error("Failed to submit payment details!");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const firstName = localStorage.getItem("firstname") || "U";
@@ -194,27 +239,15 @@ const Enroll = () => {
             <h2 className="text-2xl font-semibold text-center mb-4">
               Add Payment Details
             </h2>
-            <Form layout="vertical">
+            <Form layout="vertical" form={form}>
               <Form.Item label="First Name" name="firstName">
-                <Input
-                  value={firstName}
-                  disabled
-                  className="dark:bg-gray-700 dark:text-white"
-                />
+                <Input disabled className="dark:bg-gray-700 dark:text-white" />
               </Form.Item>
               <Form.Item label="Last Name" name="lastName">
-                <Input
-                  value={lastName}
-                  disabled
-                  className="dark:bg-gray-700 dark:text-white"
-                />
+                <Input disabled className="dark:bg-gray-700 dark:text-white" />
               </Form.Item>
               <Form.Item label="Student ID" name="studentId">
-                <Input
-                  value={studentId}
-                  disabled
-                  className="dark:bg-gray-700 dark:text-white"
-                />
+                <Input disabled className="dark:bg-gray-700 dark:text-white" />
               </Form.Item>
               <Form.Item
                 label="Amount"
@@ -254,20 +287,13 @@ const Enroll = () => {
               <Form.Item label="Remarks" name="remarks">
                 <Input.TextArea placeholder="Optional remarks" rows={3} />
               </Form.Item>
-              <Form.Item label="Payment Slip" name="paymentSlip">
-                <Dragger name="file" showUploadList={false}>
-                  <p className="ant-upload-drag-icon">
-                    <InboxOutlined />
-                  </p>
-                  <p className="ant-upload-text">
-                    Click or drag file to upload
-                  </p>
-                  <p className="ant-upload-hint">
-                    Supported formats: JPG, PNG, PDF
-                  </p>
-                </Dragger>
-              </Form.Item>
-              <Button type="primary" htmlType="submit" block>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                onClick={handleSubmit}
+              >
                 Submit
               </Button>
             </Form>

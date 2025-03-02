@@ -12,8 +12,7 @@ const PaymentSchema = new Schema({
     required: true,
   },
   studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // Assuming 'User' model stores student info
+    type: String,
     required: true,
   },
   month: {
@@ -37,10 +36,6 @@ const PaymentSchema = new Schema({
   amount: {
     type: Number,
     require: true,
-  },
-  paymentSlip: {
-    type: String, // This could be a URL to the uploaded file, or a path in your file storage
-    required: true,
   },
   remarks: {
     type: String,
