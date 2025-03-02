@@ -110,11 +110,12 @@ exports.login = async (req, res) => {
 };
 
 // 🔹 **Forgot Password**
-exports.forgotpassword = async (req, res) => {
+exports.forgotpassword = async (req, res, next) => {
   const { email } = req.body;
+  let user;
 
   try {
-    const user = await User.findOne({ email });
+    user = await User.findOne({ email });
     if (!user) {
       return res
         .status(404)
@@ -128,22 +129,25 @@ exports.forgotpassword = async (req, res) => {
 
     // Use external email template
     const emailTemplate = resetPasswordTemplate(resetURL);
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Password Reset Request",
+        html: emailTemplate,
+      });
 
-    await sendEmail({
-      to: user.email,
-      subject: "Password Reset Request",
-      html: emailTemplate,
-    });
+      res.status(200).json({ success: true, message: "Reset email sent" });
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
 
-    res.status(200).json({ success: true, message: "Reset email sent" });
+      res
+        .status(500)
+        .json({ success: false, message: "Email could not be sent" });
+    }
   } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-
-    res
-      .status(500)
-      .json({ success: false, message: "Email could not be sent" });
+    next(error);
   }
 };
 
