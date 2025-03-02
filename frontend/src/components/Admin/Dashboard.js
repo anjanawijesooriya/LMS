@@ -81,12 +81,13 @@ const Dashboard = () => {
 
   const usersCount = stdData.length;
   const clsCount = clsData.length;
+  const revenue = payData.reduce((sum, payment) => sum + payment.amount, 0);
 
   // Simulated Data for Summaries
   const summaryData = {
     users: usersCount,
     classes: clsCount,
-    payments: 45000,
+    payments: revenue,
   };
 
   // Get Upcoming Classes closer to today's date
