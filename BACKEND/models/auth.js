@@ -56,6 +56,31 @@ const UserSchema = new Schema(
         default: "pending",
       },
       expiryDate: { type: Date, default: null },
+      paidMonths: [
+        {
+          month: {
+            type: String,
+            enum: [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ],
+          },
+          year: {
+            type: Number,
+            required: true,
+          },
+        },
+      ], // Stores the paid months with year
     },
   },
   { timestamps: true }
