@@ -107,7 +107,7 @@ const UserHome = () => {
       >
         Profile
       </Button>
-      <Button type="default" block className="mb-2">
+      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -204,8 +204,8 @@ const UserHome = () => {
             </Button>
           )}
           {/* Profile Dropdown */}
-          <Button type="default">Profile</Button>
-          <Button type="default">Payments</Button>
+          <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
+          <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
           </Button>

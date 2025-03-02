@@ -89,10 +89,10 @@ const Profile = () => {
             </span>
           )} */}
       </div>
-      <Button type="default" block className="mt-4 mb-2">
+      <Button type="default" block className="mt-4 mb-2" onClick={() => history(`/user-profile/${firstName}`)}>
         Profile
       </Button>
-      <Button type="default" block className="mb-2">
+      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -216,13 +216,27 @@ const Profile = () => {
         {menuOpen && (
           <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
             {localStorage.getItem("status") === "active" ? (
-              <Button type="default">Classes</Button>
+              <Button
+                type="default"
+                onClick={() =>
+                  history(`/user-classes/${localStorage.getItem("firstname")}`)
+                }
+              >
+                Classes
+              </Button>
             ) : (
-              <Button type="primary">Enroll</Button>
+              <Button
+                type="primary"
+                onClick={() =>
+                  history(`/user-enroll/${localStorage.getItem("firstname")}`)
+                }
+              >
+                Enroll
+              </Button>
             )}
             {/* Profile Dropdown */}
-            <Button type="default">Profile</Button>
-            <Button type="default">Payments</Button>
+            <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
+            <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
             <Button type="default" onClick={logoutHandler}>
               Logout
             </Button>
@@ -280,7 +294,7 @@ const Profile = () => {
                     className="w-full"
                     onClick={() => history(`/user-enroll/${firstName}`)}
                   >
-                    Enroll in a Course
+                    Enroll
                   </Button>
                 )}
               </div>

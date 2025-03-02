@@ -16,6 +16,7 @@ import UserHome from "./components/User/userHome";
 import Enroll from "./components/User/Enroll";
 import Classes from "./components/User/Classes";
 import Profile from "./components/User/Profile";
+import Payments from "./components/User/Payments";
 
 //Admin
 import Dashboard from "./components/Admin/Dashboard";
@@ -63,6 +64,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user-payments/:username"
+          element={
+            <PrivateRoute>
+              <Payments />
             </PrivateRoute>
           }
         />

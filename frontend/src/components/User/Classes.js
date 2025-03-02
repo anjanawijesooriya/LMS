@@ -93,10 +93,10 @@ const Classes = () => {
             </span>
           )} */}
       </div>
-      <Button type="default" block className="mt-4 mb-2">
+      <Button type="default" block className="mt-4 mb-2" onClick={() => history(`/user-profile/${firstName}`)}>
         Profile
       </Button>
-      <Button type="default" block className="mb-2">
+      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -174,8 +174,8 @@ const Classes = () => {
             <Button type="primary">Enroll</Button>
           )}
           {/* Profile Dropdown */}
-          <Button type="default">Profile</Button>
-          <Button type="default">Payments</Button>
+          <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
+          <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
           </Button>
