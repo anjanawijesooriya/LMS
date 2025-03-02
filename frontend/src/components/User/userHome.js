@@ -76,6 +76,7 @@ const UserHome = () => {
     localStorage.removeItem("studentID");
     localStorage.removeItem("id");
     localStorage.removeItem("grade");
+    localStorage.removeItem("telephone");
     setAvailable(false);
     history("/login");
   };
@@ -135,7 +136,7 @@ const UserHome = () => {
             className="!h-10 flex items-center justify-center"
             onClick={() =>
               localStorage.getItem("status") === "active"
-                ? null
+                ? history(`/user-classes/${localStorage.getItem("firstname")}`)
                 : history(`/user-enroll/${localStorage.getItem("firstname")}`)
             }
           >
@@ -184,7 +185,14 @@ const UserHome = () => {
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
           {localStorage.getItem("status") === "active" ? (
-            <Button type="default">Classes</Button>
+            <Button
+              type="default"
+              onClick={() =>
+                history(`/user-classes/${localStorage.getItem("firstname")}`)
+              }
+            >
+              Classes
+            </Button>
           ) : (
             <Button
               type="primary"

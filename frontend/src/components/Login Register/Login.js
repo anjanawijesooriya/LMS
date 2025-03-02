@@ -69,6 +69,7 @@ const Login = () => {
         localStorage.setItem("status", data?.user.membership?.status);
         localStorage.setItem("studentID", data.user.studentId);
         localStorage.setItem("grade", data?.user.grade);
+        localStorage.setItem("telephone", data?.user.telephoneNumber);
       }
       localStorage.setItem("id", data.user.id);
 

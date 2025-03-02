@@ -79,6 +79,8 @@ const Enroll = () => {
     localStorage.removeItem("status");
     localStorage.removeItem("studentID");
     localStorage.removeItem("id");
+    localStorage.removeItem("grade");
+    localStorage.removeItem("telephone");
     setAvailable(false);
     history("/login");
   };
