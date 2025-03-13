@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
   Input,
@@ -19,6 +20,9 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { logoutUser } from "../../redux/features/auth/authActions";
 
 const months = [
   "January",
@@ -43,6 +47,13 @@ const Classes = () => {
   );
   const [available, setAvailable] = useState(false);
   const history = useNavigate();
+  const dispatch = useDispatch();
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
 
   useEffect(() => {
     setTimeout(() => {
@@ -61,16 +72,7 @@ const Classes = () => {
   }, [darkMode]);
 
   const logoutHandler = () => {
-    localStorage.setItem("authToken", null);
-    localStorage.removeItem("firstname");
-    localStorage.removeItem("lastname");
-    localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    localStorage.removeItem("status");
-    localStorage.removeItem("studentID");
-    localStorage.removeItem("id");
-    localStorage.removeItem("grade");
-    localStorage.removeItem("telephone");
+    dispatch(logoutUser());
     setAvailable(false);
     history("/login");
   };
@@ -93,10 +95,22 @@ const Classes = () => {
             </span>
           )} */}
       </div>
-      <Button type="default" block className="mt-4 mb-2" onClick={() => history(`/user-profile/${firstName}`)}>
+      <Button
+        type="default"
+        block
+        className="mt-4 mb-2"
+        onClick={() => history(`/user-profile/${user?.firstName}`)}
+      >
         Profile
       </Button>
-      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
+      <Button
+        type="default"
+        block
+        className="mb-2"
+        onClick={() =>
+          history(`/user-payments/${user?.firstName}`)
+        }
+      >
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -118,13 +132,13 @@ const Classes = () => {
         <div className="hidden md:flex gap-4">
           <Button
             type={
-              localStorage.getItem("status") === "active"
+              user?.membership.status === "active"
                 ? "default"
                 : "primary"
             }
             className="!h-10 flex items-center justify-center"
           >
-            {localStorage.getItem("status") === "active" ? "Classes" : "Enroll"}
+            {user?.membership.status === "active" ? "Classes" : "Enroll"}
           </Button>
           {/* Profile Dropdown */}
           <Dropdown
@@ -134,17 +148,17 @@ const Classes = () => {
           >
             <div className="relative cursor-pointer">
               <Avatar className="bg-blue-500" size={40}>
-                {firstName.charAt(0).toUpperCase()}
+                {user?.firstName.charAt(0).toUpperCase()}
               </Avatar>
-              {userStatus && (
+              {user?.membership.status && (
                 <span
                   className={`absolute top-0 right-0 text-sm ${
-                    userStatus === "active"
+                    user?.membership.status === "active"
                       ? "text-green-500"
                       : "text-yellow-500"
                   }`}
                 >
-                  {userStatus === "active" ? "✅" : "⏳"}
+                  {user?.membership.status === "active" ? "✅" : "⏳"}
                 </span>
               )}
             </div>
@@ -168,14 +182,26 @@ const Classes = () => {
       {/* Responsive Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {localStorage.getItem("status") === "active" ? (
+          {user?.membership.status === "active" ? (
             <Button type="default">Classes</Button>
           ) : (
             <Button type="primary">Enroll</Button>
           )}
           {/* Profile Dropdown */}
-          <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
-          <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
+          <Button
+            type="default"
+            onClick={() => history(`/user-profile/${user?.firstName}`)}
+          >
+            Profile
+          </Button>
+          <Button
+            type="default"
+            onClick={() =>
+              history(`/user-payments/${user?.firstName}`)
+            }
+          >
+            Payments
+          </Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
           </Button>
@@ -203,7 +229,8 @@ const Classes = () => {
                   : "hover:scale-105"
               }`}
               onClick={() =>
-                !isFutureMonth && history(`/classes/${firstName}/${month.toLowerCase()}`)
+                !isFutureMonth &&
+                history(`/classes/${user?.firstName}/${month.toLowerCase()}`)
               }
               style={{
                 backgroundImage: `url("https://media.istockphoto.com/id/847375436/photo/word-learn-english-made-with-carved-letters-onyellow-desk-with-office-or-school-supplies.jpg?s=612x612&w=0&k=20&c=WpmGcNkhcTBY3sYijXynZVYIp0IBo3vLnWXGfPI2IoA=")`,
