@@ -104,8 +104,8 @@ const Profile = () => {
   const handleEdit = () => {
     setEditing(true);
     form.setFieldsValue({
-      firstname: localStorage.getItem("firstname"),
-      lastname: localStorage.getItem("lastname"),
+      firstName: localStorage.getItem("firstname"),
+      lastName: localStorage.getItem("lastname"),
       email: localStorage.getItem("email"),
       grade: localStorage.getItem("grade"),
       telephoneNumber: localStorage.getItem("telephone"),
