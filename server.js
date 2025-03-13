@@ -18,7 +18,7 @@ connection.once("open", () => {
 
 const app = express();
 
-const PORT = process.env.PORT || 8070;
+const PORT = process.env.PORT || 8071;
 
 app.use(cors());
 app.use(express.json());

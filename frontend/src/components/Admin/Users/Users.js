@@ -133,17 +133,17 @@ const Users = ({ onUpdate }) => {
         { text: "Expired", value: "expired" },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (status) => (
+      render: (_,record) => (
         <Tag
-          color={status === "active" ? "green" : "gold"}
+          color={record.membership.status === "active" ? "green" : "gold"}
           className="flex items-center gap-2"
         >
           <span
             className={`w-2 h-2 rounded-full ${
-              status === "active" ? "bg-green-500" : "bg-yellow-500"
+              record.membership.status === "active" ? "bg-green-500" : "bg-yellow-500"
             }`}
           />
-          {status?.charAt(0)?.toUpperCase() + status?.slice(1)}
+          {record.membership.status?.replace(/^./, (char) => char.toUpperCase())}
         </Tag>
       ),
     },

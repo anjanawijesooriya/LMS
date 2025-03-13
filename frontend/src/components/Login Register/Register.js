@@ -129,11 +129,13 @@ const Register = () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      notification.success({
-        message: "Success",
-        description: "Successfully created your profile! 🎉",
-        placement: "top",
-      });
+      setTimeout(() => {
+        notification.success({
+          message: "Success",
+          description: "Successfully created your profile! 🎉",
+          placement: "top",
+        });
+      }, 2000);
 
       setTimeout(() => navigate("/login"), 3000);
     } catch (error) {

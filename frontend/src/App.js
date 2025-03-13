@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import '@ant-design/v5-patch-for-react-19';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ArrowUpOutlined } from "@ant-design/icons";
 import { Button } from "antd";

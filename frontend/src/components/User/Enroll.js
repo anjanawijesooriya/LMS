@@ -13,6 +13,7 @@ import {
   Upload,
   message,
   Select,
+  notification,
 } from "antd";
 import {
   SearchOutlined,
@@ -106,7 +107,11 @@ const Enroll = () => {
 
       if (data.success) {
         setTimeout(() => {
-          message.success("Payment details submitted successfully!");
+          notification.success({
+            message: "Success",
+            description: "Payment details added Successfully!",
+            placement: "top",
+          });
           form.resetFields();
           setLoading(false);
         }, 3000);
@@ -139,10 +144,22 @@ const Enroll = () => {
           </span>
         )} */}
       </div>
-      <Button type="default" block className="mt-4 mb-2" onClick={() => history(`/user-profile/${firstName}`)}>
+      <Button
+        type="default"
+        block
+        className="mt-4 mb-2"
+        onClick={() => history(`/user-profile/${firstName}`)}
+      >
         Profile
       </Button>
-      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
+      <Button
+        type="default"
+        block
+        className="mb-2"
+        onClick={() =>
+          history(`/user-payments/${localStorage.getItem("firstname")}`)
+        }
+      >
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -223,8 +240,20 @@ const Enroll = () => {
               <Button type="primary">Enroll</Button>
             )}
             {/* Profile Dropdown */}
-            <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
-            <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
+            <Button
+              type="default"
+              onClick={() => history(`/user-profile/${firstName}`)}
+            >
+              Profile
+            </Button>
+            <Button
+              type="default"
+              onClick={() =>
+                history(`/user-payments/${localStorage.getItem("firstname")}`)
+              }
+            >
+              Payments
+            </Button>
             <Button type="default" onClick={logoutHandler}>
               Logout
             </Button>

@@ -308,14 +308,14 @@ const Profile = () => {
                   <Form.Item
                     className=" dark:text-white"
                     label="First Name"
-                    name="firstname"
+                    name="firstName"
                     rules={[{ required: true }]}
                   >
                     <Input />
                   </Form.Item>
                   <Form.Item
                     label="Last Name"
-                    name="lastname"
+                    name="lastName"
                     rules={[{ required: true }]}
                   >
                     <Input />

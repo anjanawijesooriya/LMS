@@ -162,6 +162,7 @@ const Classes = ({ onUpdate }) => {
       const response = await axios.post("/classes/add", newClassData);
 
       if (response.data.success) {
+        console.log("Called");
         // Re-fetch all classes after adding the new one
         const res = await axios.get("/classes/");
         const classes = res.data;

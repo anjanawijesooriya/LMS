@@ -363,7 +363,7 @@ const ResetPasswordTemplate = (resetUrl) => {
                                     text-align: center;
                                   "
                                 >
-                                  <div class="alignment" align="center">
+                                  <div class="alignment" style="cursor-pointer" align="center" onclick="window.open('${resetUrl}', '_blank')">
                                     <a
                                       href="${resetUrl}"
                                       target="_blank"
