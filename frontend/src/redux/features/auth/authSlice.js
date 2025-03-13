@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import storage from "redux-persist/lib/storage"; // Import storage
 
 const initialState = {
   user: null,
@@ -46,6 +47,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       localStorage.setItem("authToken", null);
+      storage.removeItem("persist:root"); // Clear persisted Redux state
     },
   },
 });
