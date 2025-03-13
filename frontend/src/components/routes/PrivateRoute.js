@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Spin } from "antd";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
 
 const PrivateRoute = ({ children }) => {
   const [loader, setLoader] = useState(true);
+
+  const { token } = useSelector(selectAuthState);
 
   useEffect(() => {
     setTimeout(() => {
@@ -12,7 +16,7 @@ const PrivateRoute = ({ children }) => {
     }, 2000);
   }, []);
 
-  if (!localStorage.getItem("authToken") || localStorage.getItem("authToken") === "null") {
+  if (token || localStorage.getItem("authToken") === "null") {
     return loader ? (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <motion.div

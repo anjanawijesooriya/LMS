@@ -30,6 +30,18 @@ const Login = () => {
     error: authError,
   } = useSelector(selectAuthState);
 
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setTimeout(() => {
+        history(
+          user.role === "admin"
+            ? `/admin-dashboard/${user.firstName}`
+            : `/user-dashboard/${user.firstName}`
+        );
+      }, 3000);
+    }
+  }, [isAuthenticated, user, history]); // Redirect when user state updates
+
   const validateEmail = (email) => {
     return /^[\w-.]+@[\w-]+\.[a-z]{2,}$/.test(email);
   };
@@ -60,13 +72,6 @@ const Login = () => {
       dispatch(loginUser({ email, password }));
       setTimeout(() => {
         // set a 5seconds timeout for authentication
-        if (user) {
-          history(
-            user.role === "admin"
-              ? `/admin-dashboard/${user.firstName}`
-              : `/user-dashboard/${user.firstName}`
-          );
-        }
         setLoading(false);
       }, 5000);
     } catch (error) {
