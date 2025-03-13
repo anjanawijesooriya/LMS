@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Layout,
   Menu,
@@ -25,6 +26,9 @@ import Classes from "./Online-Classes/Classes";
 import Payments from "./Payments/Payments";
 import axios from "axios";
 
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { logoutUser } from "../../redux/features/auth/authActions";
+
 const { Header, Sider, Content } = Layout;
 
 const Dashboard = () => {
@@ -35,6 +39,14 @@ const Dashboard = () => {
   const [stdData, setStdData] = useState([]);
   const [clsData, setClsData] = useState([]);
   const [payData, setPayData] = useState([]);
+
+  const dispatch = useDispatch();
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
 
   useEffect(() => {
     setTimeout(() => {
@@ -70,12 +82,7 @@ const Dashboard = () => {
   };
 
   const logoutHandler = () => {
-    localStorage.setItem("authToken", null);
-    localStorage.removeItem("firstname");
-    localStorage.removeItem("lastname");
-    localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    localStorage.removeItem("id");
+    dispatch(logoutUser());
     navigate("/login");
   };
 

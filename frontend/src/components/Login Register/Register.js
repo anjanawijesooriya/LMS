@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FaUser, FaLock, FaEnvelope, FaPhone } from "react-icons/fa";
 import { notification, Spin } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { registerUser } from "../../redux/features/auth/authActions";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,56 +22,18 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // const validateField = (name, value) => {
-  //   let errorMsg = "";
-
-  //   switch (name) {
-  //     case "firstName":
-  //       if (!value.trim()) errorMsg = "First Name is required";
-  //       break;
-  //     case "lastName":
-  //       if (!value.trim()) errorMsg = "Last Name is required";
-  //       break;
-  //     case "email":
-  //       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value))
-  //         errorMsg = "Enter a valid email";
-  //       break;
-  //     case "telephoneNumber":
-  //       if (!/^\d{10}$/.test(value))
-  //         errorMsg = "Enter a valid 10-digit phone number";
-  //       break;
-  //     case "password":
-  //       if (value.length < 6 || value.length > 20)
-  //         errorMsg = "Password must be 6-20 characters long";
-  //       break;
-  //     case "confirmPassword":
-  //       if (value !== formData.password) errorMsg = "Passwords do not match";
-  //       break;
-  //     case "grade":
-  //       if (!value) errorMsg = "Grade is required";
-  //       break;
-  //     default:
-  //       break;
-  //   }
-
-  //   setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMsg }));
-
-  //   // Clear error message after 3 seconds
-  // if (errorMsg) {
-  //   setTimeout(() => {
-  //     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-  //   }, 3000);
-  // }
-  // };
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  // const handleBlur = (e) => {
-  //   validateField(e.target.name, e.target.value);
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,7 +41,7 @@ const Register = () => {
     let newErrors = {};
     Object.keys(formData).forEach((key) => {
       let errorMsg = "";
-  
+
       // Run validation manually instead of calling validateField
       switch (key) {
         case "firstName":
@@ -86,7 +51,11 @@ const Register = () => {
           if (!formData[key].trim()) errorMsg = "Last Name is required";
           break;
         case "email":
-          if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData[key]))
+          if (
+            !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+              formData[key]
+            )
+          )
             errorMsg = "Enter a valid email";
           break;
         case "telephoneNumber":
@@ -98,7 +67,8 @@ const Register = () => {
             errorMsg = "Password must be 6-20 characters long";
           break;
         case "confirmPassword":
-          if (formData[key] !== formData.password) errorMsg = "Passwords do not match";
+          if (formData[key] !== formData.password)
+            errorMsg = "Passwords do not match";
           break;
         case "grade":
           if (!formData[key]) errorMsg = "Grade is required";
@@ -106,7 +76,7 @@ const Register = () => {
         default:
           break;
       }
-  
+
       if (errorMsg) {
         newErrors[key] = errorMsg;
         setTimeout(() => {
@@ -114,7 +84,7 @@ const Register = () => {
         }, 3000);
       }
     });
-  
+
     if (Object.values(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -125,9 +95,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("/api/auth/register", formData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      dispatch(registerUser(formData));
 
       setTimeout(() => {
         notification.success({
@@ -205,7 +173,6 @@ const Register = () => {
                 placeholder={placeholder}
                 value={formData[name]}
                 onChange={handleChange}
-                
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white ${
                   errors[name] ? "border-red-500" : ""
                 }`}
@@ -221,7 +188,6 @@ const Register = () => {
               name="grade"
               value={formData.grade}
               onChange={handleChange}
-         
               className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 text-gray-500 ${
                 errors.grade ? "border-red-500" : ""
               }`}

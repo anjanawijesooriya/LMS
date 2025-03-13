@@ -1,4 +1,12 @@
-import { loginStart, loginSuccess, loginFailure, logout } from "./authSlice";
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  registerStart,
+  registerSuccess,
+  registerFailure,
+  logout,
+} from "./authSlice";
 import axios from "axios";
 
 // The loginUser action to make the real API call
@@ -47,10 +55,34 @@ export const loginUser = (credentials) => async (dispatch) => {
   }
 };
 
+export const registerUser = (userData) => async (dispatch) => {
+  try {
+    dispatch(registerStart());
+
+    const { data } = await axios.post("/api/auth/register", userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    dispatch(registerSuccess(data));
+  } catch (error) {
+    dispatch(registerFailure("Registration failed"));
+
+    if (error.response) {
+      console.error(error.response.data);
+    } else if (error.request) {
+      console.error("No response from server:", error.request);
+    } else {
+      console.error("Error:", error.message);
+    }
+  }
+};
+
 export const logoutUser = () => async (dispatch) => {
   try {
     dispatch(logout());
   } catch (error) {
     console.error("Error:", error.message);
   }
-}
+};

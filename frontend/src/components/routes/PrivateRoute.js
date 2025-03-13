@@ -16,7 +16,7 @@ const PrivateRoute = ({ children }) => {
     }, 2000);
   }, []);
 
-  if (token || localStorage.getItem("authToken") === "null") {
+  if (!token || localStorage.getItem("authToken") === "null") {
     return loader ? (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <motion.div
