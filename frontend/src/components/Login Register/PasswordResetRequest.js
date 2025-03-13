@@ -46,7 +46,7 @@ const ForgotPassword = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:8070/api/auth/forgotpassword",
+        "http://localhost:8071/api/auth/forgotpassword",
         { email },
         config
       );

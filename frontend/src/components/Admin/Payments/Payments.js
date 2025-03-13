@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Spin, Button, notification } from "antd";
+import { Table, Input, Spin, Button, notification, Tag } from "antd";
 import {
   DeleteOutlined,
   LoadingOutlined,
@@ -18,6 +18,9 @@ const Payments = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false); // Modal visibility state
+  const [actionType, setActionType] = useState(null); // Store the action type (approve/reject)
+  const [selectedPayment, setSelectedPayment] = useState(null); // Store selected payment
 
   useEffect(() => {
     setTimeout(() => {
@@ -46,6 +49,55 @@ const Payments = () => {
         pay.studentId.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredData(filtered);
+  };
+
+  const handleApprove = (payment) => {
+    setActionType("approve");
+    setSelectedPayment(payment);
+    setModalVisible(true); // Show modal for approval confirmation
+  };
+
+  const handleReject = (payment) => {
+    setActionType("reject");
+    setSelectedPayment(payment);
+    setModalVisible(true); // Show modal for rejection confirmation
+  };
+
+  const handleModalConfirm = async () => {
+    if (actionType === "approve") {
+      // Handle the approval action
+      try {
+        const response = await axios.put(
+          `/payments/approve/${selectedPayment._id}`
+        );
+        notification.success({ message: "Payment Approved Successfully" });
+        // Fetch updated payments list from the backend
+        const res = await axios.get("/payments/");
+        setData(res.data);
+        setFilteredData(res.data);
+        //setData(data.filter((item) => item._id !== selectedPayment._id)); // Remove the approved payment from the list
+        setModalVisible(false);
+      } catch (error) {
+        notification.error({ message: "Error approving payment" });
+      }
+    } else if (actionType === "reject") {
+      // Handle the rejection action
+      try {
+        const response = await axios.delete(
+          `/payments/reject/${selectedPayment._id}`
+        );
+        notification.success({ message: "Payment Rejected Successfully" });
+        setData((prevData) =>
+          prevData.filter((item) => item._id !== selectedPayment._id)
+        );
+        setFilteredData((prevData) =>
+          prevData.filter((item) => item._id !== selectedPayment._id)
+        ); // Remove the rejected payment from the list
+        setModalVisible(false);
+      } catch (error) {
+        notification.error({ message: "Error rejecting payment" });
+      }
+    }
   };
 
   const columns = [
@@ -99,6 +151,29 @@ const Payments = () => {
       key: "remarks",
     },
     {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      filters: [
+        { text: "Approved", value: "approved" },
+        { text: "Pending", value: "pending" },
+      ],
+      onFilter: (value, record) => record.status === value,
+      render: (_, record) => (
+        <Tag
+          color={record.status === "approved" ? "green" : "gold"}
+          className="flex items-center gap-2"
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              record.status === "approved" ? "bg-green-500" : "bg-yellow-500"
+            }`}
+          />
+          {record.status?.replace(/^./, (char) => char.toUpperCase())}
+        </Tag>
+      ),
+    },
+    {
       title: "Action",
       render: (record) => (
         <>
@@ -106,7 +181,8 @@ const Payments = () => {
             <Button
               type="primary"
               size="medium"
-              // onClick={() => handleEditClick(record)}
+              onClick={() => handleApprove(record)}
+              disabled={record.status === "approved"}
             >
               <CheckOutlined /> Approve
             </Button>
@@ -114,7 +190,8 @@ const Payments = () => {
               type="primary"
               danger
               size="medium"
-              // onClick={() => handleDeleteClick(record)}
+              onClick={() => handleReject(record)}
+              disabled={record.status === "approved"}
             >
               <CloseOutlined /> Reject
             </Button>
@@ -149,6 +226,20 @@ const Payments = () => {
           pagination={{ pageSize: 10 }}
         />
       )}
+
+      {/* Custom Modal for confirmation */}
+      <CustomModal
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onConfirm={handleModalConfirm}
+        confirmLoading={loading}
+        title={actionType === "approve" ? "Approve Payment" : "Reject Payment"}
+        content={
+          actionType === "approve"
+            ? "Are you sure you want to approve this payment?"
+            : "Are you sure you want to reject this payment?"
+        }
+      />
     </div>
   );
 };

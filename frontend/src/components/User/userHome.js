@@ -232,7 +232,7 @@ const UserHome = () => {
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
           {userStatus === "active" ? (
-            <Button type="default" className="bg-white text-blue-600">
+            <Button type="default" className="bg-white text-blue-600" onClick={() => history(`/user-classes/${localStorage.getItem("firstname")}`)}>
               Explore Courses
             </Button>
           ) : null}

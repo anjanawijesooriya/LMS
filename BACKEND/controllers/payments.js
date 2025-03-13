@@ -1,5 +1,6 @@
 const Payment = require("../models/payments");
 const User = require("../models/auth");
+const sendEmail = require("../utils/sendEmail");
 
 // Add Payment
 exports.addPayment = async (req, res) => {
@@ -80,10 +81,10 @@ exports.deletePayment = async (req, res) => {
 // Approve Payment
 exports.approvePayment = async (req, res) => {
   try {
-    const { paymentId } = req.params;
+    const { id } = req.params;
 
     // Find the payment
-    const payment = await Payment.findById(paymentId);
+    const payment = await Payment.findById(id);
     if (!payment) {
       return res.status(404).json({ message: "Payment Not Found" });
     }
@@ -93,6 +94,22 @@ exports.approvePayment = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User Not Found" });
     }
+
+    // Send approval email
+    const message = `
+      <h1>Payment Approved ✅</h1>
+      <p>Hello ${user.firstName} ${user.lastName},</p>
+      <p>Your payment of ${payment.month} has been approved✅. You can now access your classes via Devians LMS</p>
+      <p>If you need further assistance, please contact our support team.</p>
+      <br>
+      <strong>Devians LMS Team</strong>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Payment Approved - Devians LMS",
+      html: message,
+    });
 
     // Update payment status
     payment.status = "approved";
@@ -129,16 +146,38 @@ exports.approvePayment = async (req, res) => {
 // Reject Payment
 exports.rejectPayment = async (req, res) => {
   try {
-    const { paymentId } = req.params;
+    const { id } = req.params;
 
     // Find the payment
-    const payment = await Payment.findById(paymentId);
+    const payment = await Payment.findById(id);
     if (!payment) {
       return res.status(404).json({ message: "Payment Not Found" });
     }
 
+    // Find the user using studentId
+    const user = await User.findOne({ studentId: payment.studentId });
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
+    // Send rejection email
+    const message = `
+      <h1>Payment Rejected ❌</h1>
+      <p>Hello ${user.firstName} ${user.lastName},</p>
+      <p>Unfortunately, your payment has been rejected.</p>
+      <p>If you believe this is a mistake, please contact our support team.</p>
+      <br>
+      <strong>Devians LMS Team</strong>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Payment Rejected - Devians LMS",
+      html: message,
+    });
+
     // Reject and delete the payment
-    await Payment.findByIdAndDelete(paymentId);
+    await Payment.findByIdAndDelete(id);
 
     res
       .status(200)

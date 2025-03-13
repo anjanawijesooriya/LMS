@@ -103,9 +103,9 @@ const Enroll = () => {
 
       console.log("Submitted Data:", requestData);
 
-      const { data } = await axios.post("/payments/add", requestData);
+      const response = await axios.post("/payments/add", requestData);
 
-      if (data.success) {
+      if (response.status === 201) {
         setTimeout(() => {
           notification.success({
             message: "Success",
@@ -116,7 +116,7 @@ const Enroll = () => {
           setLoading(false);
         }, 3000);
       } else {
-        message.error(data.message || "Something went wrong!");
+        message.error(response.data.message || "Something went wrong!");
       }
     } catch (error) {
       message.error("Failed to submit payment details!");
