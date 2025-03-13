@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Layout, Spin } from "antd";
 import "./Login Register.scss";
 
@@ -7,6 +8,9 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import PasswordResetRequest from "./PasswordResetRequest";
 import { FaLock, FaEnvelope } from "react-icons/fa";
+
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { loginUser } from "../../redux/features/auth/authActions";
 
 const Login = () => {
   const [password, setPassword] = useState("");
@@ -18,6 +22,13 @@ const Login = () => {
   const [isValid, setIsValid] = useState(false);
 
   const history = useNavigate();
+  const dispatch = useDispatch();
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
 
   const validateEmail = (email) => {
     return /^[\w-.]+@[\w-]+\.[a-z]{2,}$/.test(email);
@@ -45,40 +56,16 @@ const Login = () => {
     setLoading(true);
     setIsError(false); //additional
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      const { data } = await axios.post(
-        "/api/auth/login",
-        { email, password },
-        config
-      );
-
-      console.log(data);
-
-      localStorage.setItem("authToken", data.token); //set the browser caching or local storage for globally accessed anywhere in the application
-      localStorage.setItem("firstname", data.user.firstName);
-      localStorage.setItem("lastname", data.user.lastName);
-      localStorage.setItem("email", data.user.email);
-      localStorage.setItem("role", data?.user.role);
-      if (data?.user.role === "student") {
-        localStorage.setItem("status", data?.user.membership?.status);
-        localStorage.setItem("studentID", data.user.studentId);
-        localStorage.setItem("grade", data?.user.grade);
-        localStorage.setItem("telephone", data?.user.telephoneNumber);
-      }
-      localStorage.setItem("id", data.user.id);
-
+      dispatch(loginUser({ email, password }));
       setTimeout(() => {
         // set a 5seconds timeout for authentication
-        if (data.user.role === "admin") {
-          history(`/admin-dashboard/${data.user.firstName}`);
-        } else {
-          history(`/user-dashboard/${data.user.firstName}`);
+        if (user) {
+          history(
+            user.role === "admin"
+              ? `/admin-dashboard/${user.firstName}`
+              : `/user-dashboard/${user.firstName}`
+          );
         }
         setLoading(false);
       }, 5000);

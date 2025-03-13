@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
   Input,
@@ -21,6 +22,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { logoutUser } from "../../redux/features/auth/authActions";
+
 const { Panel } = Collapse;
 
 const fadeInUp = {
@@ -38,6 +42,13 @@ const UserHome = () => {
   const [data, setData] = useState([]);
 
   const history = useNavigate();
+  const dispatch = useDispatch();
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
 
   useEffect(() => {
     setTimeout(() => {
@@ -67,16 +78,7 @@ const UserHome = () => {
   }, []);
 
   const logoutHandler = () => {
-    localStorage.setItem("authToken", null);
-    localStorage.removeItem("firstname");
-    localStorage.removeItem("lastname");
-    localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    localStorage.removeItem("status");
-    localStorage.removeItem("studentID");
-    localStorage.removeItem("id");
-    localStorage.removeItem("grade");
-    localStorage.removeItem("telephone");
+    dispatch(logoutUser());
     setAvailable(false);
     history("/login");
   };
@@ -103,11 +105,18 @@ const UserHome = () => {
         type="default"
         block
         className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${firstName}`)}
+        onClick={() => history(`/user-profile/${user?.firstName}`)}
       >
         Profile
       </Button>
-      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>
+      <Button
+        type="default"
+        block
+        className="mb-2"
+        onClick={() =>
+          history(`/user-payments/${user?.firstName}`)
+        }
+      >
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -129,18 +138,18 @@ const UserHome = () => {
         <div className="hidden md:flex gap-4">
           <Button
             type={
-              localStorage.getItem("status") === "active"
+              user?.membership.status === "active"
                 ? "default"
                 : "primary"
             }
             className="!h-10 flex items-center justify-center"
             onClick={() =>
-              localStorage.getItem("status") === "active"
-                ? history(`/user-classes/${localStorage.getItem("firstname")}`)
-                : history(`/user-enroll/${localStorage.getItem("firstname")}`)
+              user?.membership.status === "active"
+                ? history(`/user-classes/${user?.firstName}`)
+                : history(`/user-enroll/${user?.firstName}`)
             }
           >
-            {localStorage.getItem("status") === "active" ? "Classes" : "Enroll"}
+            {user?.membership.status === "active" ? "Classes" : "Enroll"}
           </Button>
           {/* Profile Dropdown */}
           <Dropdown
@@ -150,17 +159,17 @@ const UserHome = () => {
           >
             <div className="relative cursor-pointer">
               <Avatar className="bg-blue-500" size={40}>
-                {firstName.charAt(0).toUpperCase()}
+                {user?.firstName.charAt(0).toUpperCase()}
               </Avatar>
-              {userStatus && (
+              {user?.membership.status && (
                 <span
                   className={`absolute top-0 right-0 text-sm ${
-                    userStatus === "active"
+                    user?.membership.status === "active"
                       ? "text-green-500"
                       : "text-yellow-500"
                   }`}
                 >
-                  {userStatus === "active" ? "✅" : "⏳"}
+                  {user?.membership.status === "active" ? "✅" : "⏳"}
                 </span>
               )}
             </div>
@@ -184,11 +193,11 @@ const UserHome = () => {
       {/* Responsive Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {localStorage.getItem("status") === "active" ? (
+          {user?.membership.status === "active" ? (
             <Button
               type="default"
               onClick={() =>
-                history(`/user-classes/${localStorage.getItem("firstname")}`)
+                history(`/user-classes/${user?.firstName}`)
               }
             >
               Classes
@@ -197,15 +206,27 @@ const UserHome = () => {
             <Button
               type="primary"
               onClick={() =>
-                history(`/user-enroll/${localStorage.getItem("firstname")}`)
+                history(`/user-enroll/${user?.firstName}`)
               }
             >
               Enroll
             </Button>
           )}
           {/* Profile Dropdown */}
-          <Button type="default" onClick={() => history(`/user-profile/${firstName}`)}>Profile</Button>
-          <Button type="default" onClick={() => history(`/user-payments/${localStorage.getItem("firstname")}`)}>Payments</Button>
+          <Button
+            type="default"
+            onClick={() => history(`/user-profile/${user?.firstName}`)}
+          >
+            Profile
+          </Button>
+          <Button
+            type="default"
+            onClick={() =>
+              history(`/user-payments/${user?.firstName}`)
+            }
+          >
+            Payments
+          </Button>
           <Button type="default" onClick={logoutHandler}>
             Logout
           </Button>
@@ -231,18 +252,24 @@ const UserHome = () => {
           Join thousands of students learning from top educators
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          {userStatus === "active" ? (
-            <Button type="default" className="bg-white text-blue-600" onClick={() => history(`/user-classes/${localStorage.getItem("firstname")}`)}>
+          {user?.membership.status === "active" ? (
+            <Button
+              type="default"
+              className="bg-white text-blue-600"
+              onClick={() =>
+                history(`/user-classes/${user?.firstName}`)
+              }
+            >
               Explore Courses
             </Button>
           ) : null}
-          {userStatus !== "active" ? (
+          {user?.membership.status !== "active" ? (
             <Button
               type="default"
               className="border-white text-black"
               onClick={() =>
-                userStatus !== "active"
-                  ? history(`/user-enroll/${firstName}`)
+                user?.membership.status !== "active"
+                  ? history(`/user-enroll/${user?.firstName}`)
                   : null
               }
             >
