@@ -60,24 +60,6 @@ const UserSchema = new Schema(
         {
           month: {
             type: String,
-            enum: [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ],
-          },
-          year: {
-            type: Number,
-            required: true,
           },
         },
       ], // Stores the paid months with year
