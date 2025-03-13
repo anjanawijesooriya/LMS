@@ -116,22 +116,36 @@ exports.approvePayment = async (req, res) => {
     payment.approvalDate = new Date();
     await payment.save();
 
-    // Update user's membership
-    const currentDate = new Date();
-    const expiryDate = new Date(
-      currentDate.setMonth(currentDate.getMonth() + 1)
-    );
+    // Function to get the last date of a given month and year
+    const getLastDayOfMonth = (month, year) => {
+      return new Date(year, month, 0); // '0' gets the last day of the previous month
+    };
 
+    // Get the current year
+    const currentYear = new Date().getFullYear();
+
+    // Get the month index (January = 0, February = 1, ..., December = 11)
+    const monthIndex =
+      new Date(`${payment.month} 1, ${currentYear}`).getMonth() + 1;
+
+    // Get the last day of the month
+    const expiryDate = getLastDayOfMonth(monthIndex, currentYear);
+
+    // Set expiry date to the last day of the selected month
     user.membership.status = "active";
     user.membership.expiryDate = expiryDate;
 
-    // Add the approved month to the paidMonths array if not already added
+    // Format month as "Month-Year"
+    const formattedMonth = `${payment.month}-${currentYear}`;
+
+    // Check if the month-year is already recorded
     const isMonthPaid = user.membership.paidMonths.some(
-      (entry) => entry.month === payment.month
+      (entry) => entry.month === formattedMonth
     );
 
+    // Store in "Month-Year" format if not already paid
     if (!isMonthPaid) {
-      user.membership.paidMonths.push({ month: payment.month });
+      user.membership.paidMonths.push({ month: formattedMonth });
     }
 
     await user.save();

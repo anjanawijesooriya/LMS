@@ -13,7 +13,7 @@ import moment from "moment";
 
 const { Search } = Input;
 
-const Payments = () => {
+const Payments = ({ onUpdate }) => {
   const [loader, setLoader] = useState(true);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -93,6 +93,7 @@ const Payments = () => {
         setFilteredData((prevData) =>
           prevData.filter((item) => item._id !== selectedPayment._id)
         ); // Remove the rejected payment from the list
+        onUpdate();
         setModalVisible(false);
       } catch (error) {
         notification.error({ message: "Error rejecting payment" });

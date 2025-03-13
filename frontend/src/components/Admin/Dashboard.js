@@ -105,7 +105,7 @@ const Dashboard = () => {
       case "classes":
         return <Classes onUpdate={fetchData} />;
       case "payments":
-        return <Payments />;
+        return <Payments onUpdate={fetchData} />;
       case "overview":
       default:
         return (
