@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import '@ant-design/v5-patch-for-react-19';
+import "@ant-design/v5-patch-for-react-19";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ArrowUpOutlined } from "@ant-design/icons";
 import { Button } from "antd";
@@ -18,6 +18,7 @@ import Enroll from "./components/User/Enroll";
 import Classes from "./components/User/Classes";
 import Profile from "./components/User/Profile";
 import Payments from "./components/User/Payments";
+import ClassDetails from "./components/User/ClassDetails";
 
 //Admin
 import Dashboard from "./components/Admin/Dashboard";
@@ -84,6 +85,14 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/classes/:username/:month"
+          element={
+            <PrivateRoute>
+              <ClassDetails />
+            </PrivateRoute>
+          }
+        ></Route>
         {/*admin*/}
         <Route
           path="/admin-dashboard/:username"
