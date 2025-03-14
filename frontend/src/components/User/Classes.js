@@ -107,9 +107,7 @@ const Classes = () => {
         type="default"
         block
         className="mb-2"
-        onClick={() =>
-          history(`/user-payments/${user?.firstName}`)
-        }
+        onClick={() => history(`/user-payments/${user?.firstName}`)}
       >
         Payments
       </Button>
@@ -131,11 +129,7 @@ const Classes = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
           <Button
-            type={
-              user?.membership.status === "active"
-                ? "default"
-                : "primary"
-            }
+            type={user?.membership.status === "active" ? "default" : "primary"}
             className="!h-10 flex items-center justify-center"
           >
             {user?.membership.status === "active" ? "Classes" : "Enroll"}
@@ -196,9 +190,7 @@ const Classes = () => {
           </Button>
           <Button
             type="default"
-            onClick={() =>
-              history(`/user-payments/${user?.firstName}`)
-            }
+            onClick={() => history(`/user-payments/${user?.firstName}`)}
           >
             Payments
           </Button>
@@ -218,18 +210,36 @@ const Classes = () => {
       <div className="container mx-auto px-4 py-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
         {months.map((month, index) => {
           const currentMonthIndex = new Date().getMonth(); // Get the current month index (0-11)
-          const isFutureMonth = index > currentMonthIndex; // Check if the month is in the future
+          const currentYear = new Date().getFullYear(); // Get current year
+
+          // Extract paid months & normalize them
+          const paidMonths =
+            user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
+
+          // Format the current month-year string for comparison
+          const monthYear = `${month.trim()}-${currentYear}`; // Ensure no extra spaces
+
+          // Check if this month is in the future
+          const isFutureMonth = index > currentMonthIndex;
+
+          // Check if the user has paid for this month (case-insensitive comparison)
+          const isPaidMonth = paidMonths.some(
+            (paidMonth) => paidMonth.toLowerCase() === monthYear.toLowerCase()
+          );
+
+          // Disable if it's a future month OR not paid
+          const isDisabled = !isPaidMonth;
 
           return (
             <div
               key={index}
               className={`relative h-40 rounded-lg overflow-hidden cursor-pointer shadow-lg transition transform ${
-                isFutureMonth
+                isDisabled
                   ? "opacity-30 pointer-events-none"
                   : "hover:scale-105"
               }`}
               onClick={() =>
-                !isFutureMonth &&
+                !isDisabled &&
                 history(`/classes/${user?.firstName}/${month.toLowerCase()}`)
               }
               style={{
