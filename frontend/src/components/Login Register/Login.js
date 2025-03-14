@@ -75,21 +75,24 @@ const Login = () => {
         setLoading(false);
       }, 5000);
     } catch (error) {
-      setError(error.response.data.error);
-      setAvailable(error.response.data.available);
       setLoading(false);
       setIsError(true);
-      if (error.status === 401) {
-        setError("Invalid credentials. Please try again.");
-      } else if (error.status === 404) {
-        setError("User does not exist. Please register first.");
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
+
+      // Safely extract error message
+      const errorMessage =
+        error?.response?.data?.error ||
+        (error?.status === 401
+          ? "Invalid credentials. Please try again."
+          : error?.status === 404
+          ? "User does not exist. Please register first."
+          : "Something went wrong. Please try again.");
+
+      setError(errorMessage);
+      console.log(errorMessage);
+
       setTimeout(() => {
         setError("");
-        setAvailable("");
-      }, 3000); //3s
+      }, 3000);
     }
   };
 
@@ -107,7 +110,11 @@ const Login = () => {
           Welcome Back
         </h2>
         <form onSubmit={loginHandler} className="space-y-4">
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {(error || authError) && (
+            <p className="text-red-500 text-sm text-center bg-red-100 py-2 rounded-md">
+              {error || authError}
+            </p>
+          )}
           <div className="relative">
             <FaEnvelope className="absolute left-3 top-3 text-gray-500" />
             <input

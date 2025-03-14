@@ -39,7 +39,13 @@ export const loginUser = (credentials) => async (dispatch) => {
     //   localStorage.setItem("telephone", data.user.telephoneNumber);
     // }
   } catch (error) {
-    dispatch(loginFailure("Login failed"));
+    let errorMessage =
+      error?.response?.data?.error ||
+      (error?.status === 401
+        ? "Invalid credentials. Please try again."
+        : error?.status === 404
+        ? "User does not exist. Please register first."
+        : "Something went wrong. Please try again.");
 
     // Optionally handle more error details here
     if (error.response) {
@@ -52,6 +58,10 @@ export const loginUser = (credentials) => async (dispatch) => {
       // General error
       console.error("Error:", error.message);
     }
+    dispatch(loginFailure(errorMessage));
+    setTimeout(() => {
+      dispatch(loginFailure(null));
+    }, 3000);
   }
 };
 
