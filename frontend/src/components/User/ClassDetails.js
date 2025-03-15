@@ -81,7 +81,8 @@ const ClassDetails = () => {
     // Filter classes based on user payment (matching classDate with paidMonths)
     const filtered = formattedClasses.filter((item) => {
       return (
-        item.classGrade === user.grade && paidMonths.includes(item.classDateForFilter) // Check if the user paid for this classDate
+        item.classGrade === user.grade &&
+        paidMonths.includes(item.classDateForFilter) // Check if the user paid for this classDate
       );
     });
     setFilteredData(filtered);
@@ -285,6 +286,14 @@ const ClassDetails = () => {
                               "_blank",
                               "noopener,noreferrer"
                             )
+                          }
+                          disabled={
+                            moment(classItem.classDate).isBefore(moment()) &&
+                            moment(classItem.classDate).isAfter(
+                              moment().subtract(1, "days")
+                            )
+                              ? false
+                              : true
                           }
                         >
                           Join Class
