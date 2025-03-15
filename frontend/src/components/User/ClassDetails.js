@@ -50,9 +50,12 @@ const ClassDetails = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    dispatch(fetchClasses());
-    filterByMonth();
-  }, []);
+    dispatch(fetchClasses()); // Fetch classes initially
+  }, [dispatch]);
+
+  useEffect(() => {
+    filterByMonth(); // Apply the filtering logic
+  }, [classes]); // Reapply filter when classes are updated
 
   const logoutHandler = () => {
     dispatch(logoutUser());
@@ -62,13 +65,38 @@ const ClassDetails = () => {
 
   const filterByMonth = () => {
     const month = new Date().getMonth();
-    const filtered = classes.filter((item) => {
+    // Format the classDate to "MMMM-YYYY"
+    const formattedClasses = classes.map((item) => {
+      const formattedDate = moment(item.classDate).format("MMMM-YYYY");
+      return {
+        ...item,
+        classDateForFilter: formattedDate, // Format classDate
+      };
+    });
+    console.log(formattedClasses);
+    // Extract paid months & normalize them
+    const paidMonths =
+      user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
+    console.log(paidMonths);
+    // Filter classes based on user payment (matching classDate with paidMonths)
+    const filtered = formattedClasses.filter((item) => {
       return (
-        new Date(item.classDate).getMonth() === month &&
-        item.classGrade === user.grade
+        item.classGrade === user.grade && paidMonths.includes(item.classDateForFilter) // Check if the user paid for this classDate
       );
     });
     setFilteredData(filtered);
+  };
+
+  // Group classes by year
+  const groupClassesByYear = () => {
+    return filteredData.reduce((acc, classItem) => {
+      const year = moment(classItem.classDate).year();
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+      acc[year].push(classItem);
+      return acc;
+    }, {});
   };
 
   const profileMenu = (
@@ -200,64 +228,73 @@ const ClassDetails = () => {
       <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white mt-20">
         Your Classes
       </h1>
-      {filteredData.length === 0 ? (
+      {Object.keys(groupClassesByYear()).length === 0 ? (
         <p className="text-center text-gray-600 dark:text-gray-300 text-lg">
           No classes available at the moment. Please check back later.
         </p>
       ) : (
-        <div className="container mx-auto px-4 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredData.map((classItem) => (
-            <Card
-              key={classItem.id}
-              hoverable
-              className="rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-white dark:bg-gray-800"
-              cover={
-                <img
-                  alt={classItem.className}
-                  src="https://t3.ftcdn.net/jpg/02/27/26/82/360_F_227268299_liM3oGuQApMjXf23x7rSeFJxLgV6bMcC.jpg"
-                  className="h-48 w-full object-cover"
-                />
-              }
-            >
-              <div className="border-b border-gray-300 dark:border-gray-700 my-2"></div>
-              <div className="p-2">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {classItem.className}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  {classItem.description}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  {moment(classItem.classDate).format("DD MMM YYYY")}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  {classItem.classTime
-                    ? moment(
-                        classItem.classTime.replace(".", ":"),
-                        "HH:mm"
-                      ).format("hh:mm A")
-                    : "No Time Available"}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  {classItem.classGrade}
-                </p>
-                <div className="flex justify-between items-center mt-4">
-                  <Button
-                    type="primary"
-                    icon={<VideoCameraOutlined />}
-                    onClick={() =>
-                      window.open(
-                        classItem.classLink,
-                        "_blank",
-                        "noopener,noreferrer"
-                      )
+        <div className="container mx-auto px-4 py-6">
+          {Object.keys(groupClassesByYear()).map((year) => (
+            <div key={year}>
+              <h2 className="text-2xl font-bold text-center mt-2 text-gray-900 dark:text-white">
+                {year}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
+                {groupClassesByYear()[year].map((classItem) => (
+                  <Card
+                    key={classItem.id}
+                    hoverable
+                    className="rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-white dark:bg-gray-800"
+                    cover={
+                      <img
+                        alt={classItem.className}
+                        src="https://t3.ftcdn.net/jpg/02/27/26/82/360_F_227268299_liM3oGuQApMjXf23x7rSeFJxLgV6bMcC.jpg"
+                        className="h-48 w-full object-cover"
+                      />
                     }
                   >
-                    Join Class
-                  </Button>
-                </div>
+                    <div className="border-b border-gray-300 dark:border-gray-700 my-2"></div>
+                    <div className="p-2">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {classItem.className}
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        {classItem.description}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        {moment(classItem.classDate).format("DD MMM YYYY")}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        {classItem.classTime
+                          ? moment(
+                              classItem.classTime.replace(".", ":"),
+                              "HH:mm"
+                            ).format("hh:mm A")
+                          : "No Time Available"}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        {classItem.classGrade}
+                      </p>
+                      <div className="flex justify-between items-center mt-4">
+                        <Button
+                          type="primary"
+                          icon={<VideoCameraOutlined />}
+                          onClick={() =>
+                            window.open(
+                              classItem.classLink,
+                              "_blank",
+                              "noopener,noreferrer"
+                            )
+                          }
+                        >
+                          Join Class
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

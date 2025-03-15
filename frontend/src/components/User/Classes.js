@@ -227,7 +227,7 @@ const Classes = () => {
             (paidMonth) => paidMonth.toLowerCase() === monthYear.toLowerCase()
           );
 
-          // Disable if it's a future month OR not paid
+          // Disable if it's a not paid
           const isDisabled = !isPaidMonth;
 
           return (
