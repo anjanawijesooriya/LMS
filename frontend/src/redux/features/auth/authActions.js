@@ -1,3 +1,4 @@
+import { message } from "antd";
 import {
   loginStart,
   loginSuccess,
@@ -23,21 +24,7 @@ export const loginUser = (credentials) => async (dispatch) => {
 
     // Dispatching the loginSuccess action with the response data
     dispatch(loginSuccess(data));
-
-    // Saving user data and token in localStorage
-    // localStorage.setItem("authToken", data.token);
-    // localStorage.setItem("firstname", data.user.firstName);
-    // localStorage.setItem("lastname", data.user.lastName);
-    // localStorage.setItem("email", data.user.email);
-    // localStorage.setItem("role", data.user.role);
-    // localStorage.setItem("id", data.user.id);
-
-    // if (data.user.role === "student") {
-    //   localStorage.setItem("status", data.user.membership?.status);
-    //   localStorage.setItem("studentID", data.user.studentId);
-    //   localStorage.setItem("grade", data.user.grade);
-    //   localStorage.setItem("telephone", data.user.telephoneNumber);
-    // }
+    return { success: true };
   } catch (error) {
     let errorMessage =
       error?.response?.data?.error ||
@@ -62,6 +49,7 @@ export const loginUser = (credentials) => async (dispatch) => {
     setTimeout(() => {
       dispatch(loginFailure(null));
     }, 3000);
+    return { success: false, message: errorMessage };
   }
 };
 
@@ -76,8 +64,15 @@ export const registerUser = (userData) => async (dispatch) => {
     });
 
     dispatch(registerSuccess(data));
+    return { success: true };
   } catch (error) {
-    dispatch(registerFailure("Registration failed"));
+    let errorMessage =
+      error?.response?.data?.error ||
+      (error?.status === 401
+        ? "Invalid Email. Please try again."
+        : error?.status === 400
+        ? "Email already exists"
+        : "Something went wrong. Please try again.");
 
     if (error.response) {
       console.error(error.response.data);
@@ -86,6 +81,11 @@ export const registerUser = (userData) => async (dispatch) => {
     } else {
       console.error("Error:", error.message);
     }
+    dispatch(registerFailure(errorMessage));
+    setTimeout(() => {
+      dispatch(registerFailure(null));
+    }, 3000);
+    return { success: false, message: errorMessage };
   }
 };
 

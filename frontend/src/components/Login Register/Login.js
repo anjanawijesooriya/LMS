@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Layout, Spin } from "antd";
+import { Layout, notification, Spin, } from "antd";
 import "./Login Register.scss";
 
 import { LoadingOutlined } from "@ant-design/icons";
@@ -68,28 +68,22 @@ const Login = () => {
     setLoading(true);
     setIsError(false); //additional
 
-    try {
-      dispatch(loginUser({ email, password }));
+    const response = await dispatch(loginUser({ email, password }));
+
+    if (response.success) {
       setTimeout(() => {
         // set a 5seconds timeout for authentication
         setLoading(false);
-      }, 5000);
-    } catch (error) {
+        setIsError(false);
+      }, 3000);
+    } else {
       setLoading(false);
       setIsError(true);
-
-      // Safely extract error message
-      const errorMessage =
-        error?.response?.data?.error ||
-        (error?.status === 401
-          ? "Invalid credentials. Please try again."
-          : error?.status === 404
-          ? "User does not exist. Please register first."
-          : "Something went wrong. Please try again.");
-
-      setError(errorMessage);
-      console.log(errorMessage);
-
+      notification.error({
+        message: "Error",
+        description: response.message,
+        placement: "top",
+      });
       setTimeout(() => {
         setError("");
       }, 3000);
@@ -110,9 +104,9 @@ const Login = () => {
           Welcome Back
         </h2>
         <form onSubmit={loginHandler} className="space-y-4">
-          {(error || authError) && (
+          {error && (
             <p className="text-red-500 text-sm text-center bg-red-100 py-2 rounded-md">
-              {error || authError}
+              {error}
             </p>
           )}
           <div className="relative">

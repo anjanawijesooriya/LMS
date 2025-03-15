@@ -94,9 +94,9 @@ const Register = () => {
 
     setLoading(true);
 
-    try {
-      dispatch(registerUser(formData));
+    const response = await dispatch(registerUser(formData));
 
+    if (response.success) {
       setTimeout(() => {
         notification.success({
           message: "Success",
@@ -106,21 +106,13 @@ const Register = () => {
       }, 2000);
 
       setTimeout(() => navigate("/login"), 3000);
-    } catch (error) {
+    } else {
+      setLoading(false);
       notification.error({
         message: "Error",
-        description: error.response?.data?.message || "Something went wrong",
+        description: response.message,
         placement: "top",
       });
-      setLoading(false);
-      if (error.status === 401) {
-        setErrors({ email: "Invalid Email" });
-      } else if (error.status === 400) {
-        setErrors({ email: "Email already exists" });
-      } else {
-        setErrors({ email: "Something went wrong" });
-      }
-      setTimeout(() => setErrors(""), 3000);
     }
   };
 
