@@ -1,4 +1,3 @@
-import { message } from "antd";
 import {
   loginStart,
   loginSuccess,
@@ -6,6 +5,9 @@ import {
   registerStart,
   registerSuccess,
   registerFailure,
+  editProfileStart,
+  editProfileSuccess,
+  editProfileFailure,
   logout,
 } from "./authSlice";
 import axios from "axios";
@@ -94,5 +96,40 @@ export const logoutUser = () => async (dispatch) => {
     dispatch(logout());
   } catch (error) {
     console.error("Error:", error.message);
+  }
+};
+
+export const editUser = (userData) => async (dispatch) => {
+  try {
+    dispatch(editProfileStart());
+    const id = userData.id;
+    const { data } = await axios.put(`/api/auth/update/${id}`, userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    dispatch(editProfileSuccess(data));
+    return { success: true };
+  } catch (error) {
+    let errorMessage =
+      error?.response?.data?.error ||
+      (error?.status === 401
+        ? "Invalid Email. Please try again."
+        : error?.status === 400
+        ? "Email already exists"
+        : "Something went wrong. Please try again.");
+
+    if (error.response) {
+      console.error(error.response.data);
+    } else if (error.request) {
+      console.error("No response from server:", error.request);
+    } else {
+      console.error("Error:", error.message);
+    }
+    dispatch(editProfileFailure(errorMessage));
+    setTimeout(() => {
+      dispatch(editProfileFailure(null));
+    }, 3000);
+    return { success: false, message: errorMessage };
   }
 };

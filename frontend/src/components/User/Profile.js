@@ -14,6 +14,7 @@ import {
   Upload,
   message,
   Select,
+  notification,
 } from "antd";
 import {
   SearchOutlined,
@@ -22,12 +23,13 @@ import {
   CloseOutlined,
   MenuOutlined,
   InboxOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
-import { logoutUser } from "../../redux/features/auth/authActions";
+import { logoutUser, editUser } from "../../redux/features/auth/authActions";
 
 const { Option } = Select;
 
@@ -103,9 +105,7 @@ const Profile = () => {
         type="default"
         block
         className="mb-2"
-        onClick={() =>
-          history(`/user-payments/${user?.firstName}`)
-        }
+        onClick={() => history(`/user-payments/${user?.firstName}`)}
       >
         Payments
       </Button>
@@ -127,28 +127,42 @@ const Profile = () => {
   };
 
   const handleSave = async (values) => {
-    const id = user?.id;
-    try {
-      // Here you can send the updated data to your server (using axios or fetch)
-      await axios.put(`/api/auth/update/${id}`, values, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+    setLoading(true);
+    const updatedUserData = { ...values, id: user?.id };
+
+    const response = await dispatch(editUser(updatedUserData));
+
+    if (response.success) {
+      setTimeout(() => {
+        notification.success({
+          message: "Success",
+          description: "Profile updated Successfully✅",
+          placement: "top",
+        });
+        setEditing(false);
+        setLoading(false);
+
+        setTimeout(() => {
+          notification.warning({
+            message: "Logging Out",
+            description: "You are logging out now, Please login again.",
+            placement: "top",
+          });
+
+          setTimeout(() => {
+            dispatch(logoutUser());
+            history("/login");
+          }, 3000); // Delay logout after showing warning message
+        }, 3000);// Delay warning message after success
+      }, 3000); 
+    } else {
+      notification.error({
+        message: "Error",
+        description: response.message,
+        placement: "top",
       });
-
-      // If successful, update local storage
-      localStorage.setItem("firstname", values.firstname);
-      localStorage.setItem("lastname", values.lastname);
-      localStorage.setItem("email", values.email);
-      localStorage.setItem("grade", values.grade);
-      localStorage.setItem("telephone", values.telephoneNumber);
-
-      // Notify the user and stop editing
-      message.success("Profile updated successfully!");
       setEditing(false);
-    } catch (error) {
-      message.error("An error occurred while updating the profile.");
-      setEditing(false);
+      setLoading(false);
     }
   };
 
@@ -170,22 +184,16 @@ const Profile = () => {
           <div className="hidden md:flex gap-4">
             <Button
               type={
-                user?.membership.status === "active"
-                  ? "default"
-                  : "primary"
+                user?.membership?.status === "active" ? "default" : "primary"
               }
               className="!h-10 flex items-center justify-center"
               onClick={() =>
-                user?.membership.status === "active"
-                  ? history(
-                      `/user-classes/${user?.firstName}`
-                    )
+                user?.membership?.status === "active"
+                  ? history(`/user-classes/${user?.firstName}`)
                   : history(`/user-enroll/${user?.firstName}`)
               }
             >
-              {user?.membership.status === "active"
-                ? "Classes"
-                : "Enroll"}
+              {user?.membership?.status === "active" ? "Classes" : "Enroll"}
             </Button>
             {/* Profile Dropdown */}
             <Dropdown
@@ -195,17 +203,17 @@ const Profile = () => {
             >
               <div className="relative cursor-pointer">
                 <Avatar className="bg-blue-500" size={40}>
-                  {user?.firstName.charAt(0).toUpperCase()}
+                  {user?.firstName?.charAt(0).toUpperCase()}
                 </Avatar>
-                {user?.membership.status && (
+                {user?.membership?.status && (
                   <span
                     className={`absolute top-0 right-0 text-sm ${
-                      user?.membership.status === "active"
+                      user?.membership?.status === "active"
                         ? "text-green-500"
                         : "text-yellow-500"
                     }`}
                   >
-                    {user?.membership.status === "active" ? "✅" : "⏳"}
+                    {user?.membership?.status === "active" ? "✅" : "⏳"}
                   </span>
                 )}
               </div>
@@ -229,21 +237,17 @@ const Profile = () => {
         {/* Responsive Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-            {user?.membership.status === "active" ? (
+            {user?.membership?.status === "active" ? (
               <Button
                 type="default"
-                onClick={() =>
-                  history(`/user-classes/${user?.firstName}`)
-                }
+                onClick={() => history(`/user-classes/${user?.firstName}`)}
               >
                 Classes
               </Button>
             ) : (
               <Button
                 type="primary"
-                onClick={() =>
-                  history(`/user-enroll/${user?.firstName}`)
-                }
+                onClick={() => history(`/user-enroll/${user?.firstName}`)}
               >
                 Enroll
               </Button>
@@ -257,9 +261,7 @@ const Profile = () => {
             </Button>
             <Button
               type="default"
-              onClick={() =>
-                history(`/user-payments/${user?.firstName}`)
-              }
+              onClick={() => history(`/user-payments/${user?.firstName}`)}
             >
               Payments
             </Button>
@@ -279,12 +281,14 @@ const Profile = () => {
           <Card className="w-full sm:max-w-md lg:max-w-lg shadow-lg rounded-lg bg-white dark:bg-gray-800 p-8">
             <div className="text-center mb-4">
               <Avatar size={120} className="mx-auto mb-4 bg-blue-500">
-                {user?.firstName.charAt(0).toUpperCase()}
+                {user?.firstName?.charAt(0).toUpperCase()}
               </Avatar>
               <h2 className="text-2xl font-semibold mb-2 dark:text-white">{`${user?.firstName} ${user?.lastName}`}</h2>
               <p className="text-sm text-gray-500">{`Student ID: ${user?.studentId}`}</p>
               <p className="text-sm text-gray-500">{`Status: ${
-               user?.membership.status === "active" ? "Active ✅" : "Pending ⌛"
+                user?.membership?.status === "active"
+                  ? "Active ✅"
+                  : "Pending ⌛"
               }`}</p>
               <p className="text-sm text-gray-500">{`Email: ${user?.email}`}</p>
               <p className="text-sm text-gray-500">{`Grade: ${user?.grade}`}</p>
@@ -293,7 +297,7 @@ const Profile = () => {
 
             <div className="space-y-4">
               <div className="text-center">
-                {user?.membership.status === "active" ? (
+                {user?.membership?.status === "active" ? (
                   <Button
                     type="primary"
                     className="w-full"
@@ -304,7 +308,7 @@ const Profile = () => {
                 ) : null}
               </div>
               <div className="text-center">
-                {user?.membership.status === "active" ? null : (
+                {user?.membership?.status === "active" ? null : (
                   <Button
                     type="default"
                     className="w-full"
@@ -378,8 +382,17 @@ const Profile = () => {
                   >
                     <Input />
                   </Form.Item>
-                  <Button type="primary" htmlType="submit" block>
-                    Save Changes
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    block
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <Spin indicator={<LoadingOutlined />} />
+                    ) : (
+                      "Save Changes"
+                    )}
                   </Button>
                   <Button
                     type="primary"

@@ -138,18 +138,18 @@ const UserHome = () => {
         <div className="hidden md:flex gap-4">
           <Button
             type={
-              user?.membership.status === "active"
+              user?.membership?.status === "active"
                 ? "default"
                 : "primary"
             }
             className="!h-10 flex items-center justify-center"
             onClick={() =>
-              user?.membership.status === "active"
+              user?.membership?.status === "active"
                 ? history(`/user-classes/${user?.firstName}`)
                 : history(`/user-enroll/${user?.firstName}`)
             }
           >
-            {user?.membership.status === "active" ? "Classes" : "Enroll"}
+            {user?.membership?.status === "active" ? "Classes" : "Enroll"}
           </Button>
           {/* Profile Dropdown */}
           <Dropdown
@@ -159,9 +159,9 @@ const UserHome = () => {
           >
             <div className="relative cursor-pointer">
               <Avatar className="bg-blue-500" size={40}>
-                {user?.firstName.charAt(0).toUpperCase()}
+                {user?.firstName?.charAt(0).toUpperCase()}
               </Avatar>
-              {user?.membership.status && (
+              {user?.membership?.status && (
                 <span
                   className={`absolute top-0 right-0 text-sm ${
                     user?.membership.status === "active"
@@ -169,7 +169,7 @@ const UserHome = () => {
                       : "text-yellow-500"
                   }`}
                 >
-                  {user?.membership.status === "active" ? "✅" : "⏳"}
+                  {user?.membership?.status === "active" ? "✅" : "⏳"}
                 </span>
               )}
             </div>
@@ -193,7 +193,7 @@ const UserHome = () => {
       {/* Responsive Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {user?.membership.status === "active" ? (
+          {user?.membership?.status === "active" ? (
             <Button
               type="default"
               onClick={() =>
@@ -252,7 +252,7 @@ const UserHome = () => {
           Join thousands of students learning from top educators
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          {user?.membership.status === "active" ? (
+          {user?.membership?.status === "active" ? (
             <Button
               type="default"
               className="bg-white text-blue-600"
@@ -263,7 +263,7 @@ const UserHome = () => {
               Explore Courses
             </Button>
           ) : null}
-          {user?.membership.status !== "active" ? (
+          {user?.membership?.status !== "active" ? (
             <Button
               type="default"
               className="border-white text-black"
