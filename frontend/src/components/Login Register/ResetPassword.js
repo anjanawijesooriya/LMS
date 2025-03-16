@@ -63,7 +63,7 @@ const ResetPassword = () => {
         </div>
       ) : (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 dark:bg-gray-900">
-          <Header className="text-center text-3xl font-bold text-gray-800 dark:text-gray-200 p-6">
+          <Header className="text-center text-3xl font-bold text-black bg-gray-100 dark:text-gray-200 dark:bg-gray-900 p-6">
             Devians - LMS
           </Header>
 
