@@ -228,7 +228,7 @@ const Classes = () => {
           );
 
           // Disable if it's a not paid
-          const isDisabled = !isPaidMonth;
+          const isDisabled = !isPaidMonth || isFutureMonth;
 
           return (
             <div

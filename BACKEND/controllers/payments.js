@@ -116,9 +116,9 @@ exports.approvePayment = async (req, res) => {
     payment.approvalDate = new Date();
     await payment.save();
 
-    // Function to get the last date of a given month and year
-    const getLastDayOfMonth = (month, year) => {
-      return new Date(year, month, 0); // '0' gets the last day of the previous month
+    // Function to get the expiry date (1st day of the next month at 00:00 AM)
+    const getExpiryDate = (month, year) => {
+      return new Date(year, month, 1); // This sets the time to 00:00 AM on the 1st of next month
     };
 
     // Get the current year
@@ -129,7 +129,7 @@ exports.approvePayment = async (req, res) => {
       new Date(`${payment.month} 1, ${currentYear}`).getMonth() + 1;
 
     // Get the last day of the month
-    const expiryDate = getLastDayOfMonth(monthIndex, currentYear);
+    const expiryDate = getExpiryDate(monthIndex, currentYear);
 
     // Set expiry date to the last day of the selected month
     user.membership.status = "active";

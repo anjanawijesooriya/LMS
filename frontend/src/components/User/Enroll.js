@@ -90,44 +90,68 @@ const Enroll = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    const values = await form.validateFields();
-    const { firstName, lastName, studentId, amount, month, remarks } = values;
+    try {
+      setLoading(true);
+      const values = await form.validateFields();
+      const { firstName, lastName, studentId, amount, month, remarks } = values;
 
-    const requestData = {
-      firstName,
-      lastName,
-      studentId,
-      amount,
-      month,
-      remarks,
-    };
+      const requestData = {
+        firstName,
+        lastName,
+        studentId,
+        amount,
+        month,
+        remarks,
+      };
 
-    console.log("Submitted Data:", requestData);
+      console.log("Submitted Data:", requestData);
 
-    const response = await dispatch(addPayment(requestData));
+      const response = await dispatch(addPayment(requestData));
 
-    if (response.success) {
-      setTimeout(() => {
-        notification.success({
-          message: "Success",
-          description: "Payment details added Successfully!",
+      if (response.success) {
+        setTimeout(() => {
+          notification.success({
+            message: "Success",
+            description: "Payment details added Successfully!",
+            placement: "top",
+          });
+          form.setFieldsValue({
+            amount: undefined,
+            month: undefined,
+            remarks: undefined,
+          });
+          setLoading(false);
+        }, 3000);
+      } else {
+        setLoading(false);
+        notification.error({
+          message: "Error",
+          description: response.message,
           placement: "top",
         });
-        form.setFieldsValue({
-          amount: undefined,
-          month: undefined,
-          remarks: undefined,
-        });
-        setLoading(false);
-      }, 3000);
-    } else {
+      }
+    } catch (error) {
       setLoading(false);
-      notification.error({
-        message: "Error",
-        description: response.message,
-        placement: "top",
-      });
+      console.error("Form validation failed:", error);
+      if (error.message === "Please enter the amount!") {
+        notification.error({
+          message: "Error",
+          description: "Please enter the amount!",
+          placement: "top",
+        });
+      } else if (error.message === "Please select a month!") {
+        notification.error({
+          message: "Error",
+          description: "Please select a month!",
+          placement: "top",
+        });
+      } else {
+        notification.error({
+          message: "Error",
+          description: "Form validation failed!",
+          placement: "top",
+        });
+      }
     }
   };
 
