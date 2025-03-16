@@ -226,7 +226,7 @@ const ClassDetails = () => {
         </div>
       )}
       {/*content*/}
-      <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white mt-20">
+      <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white mt-24">
         Your Classes
       </h1>
       {Object.keys(groupClassesByYear()).length === 0 ? (
@@ -237,7 +237,7 @@ const ClassDetails = () => {
         <div className="container mx-auto px-4 py-6">
           {Object.keys(groupClassesByYear()).map((year) => (
             <div key={year}>
-              <h2 className="text-2xl font-bold text-center mt-2 text-gray-900 dark:text-white">
+              <h2 className="text-2xl font-bold text-center mt-4 text-gray-900 dark:text-white">
                 {year}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">

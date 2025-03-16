@@ -76,6 +76,7 @@ const Payments = ({ onUpdate }) => {
         setData(res.data);
         setFilteredData(res.data);
         //setData(data.filter((item) => item._id !== selectedPayment._id)); // Remove the approved payment from the list
+        onUpdate();
         setModalVisible(false);
       } catch (error) {
         notification.error({ message: "Error approving payment" });
