@@ -88,7 +88,9 @@ const Dashboard = () => {
 
   const usersCount = stdData.length;
   const clsCount = clsData.length;
-  const revenue = payData.reduce((sum, payment) => sum + payment.amount, 0);
+  const revenue = payData.reduce((sum, payment) => {
+    payment.status === "approved" ? sum + payment.amount : sum;
+  }, 0);
 
   // Simulated Data for Summaries
   const summaryData = {

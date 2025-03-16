@@ -178,7 +178,7 @@ exports.rejectPayment = async (req, res) => {
     const message = `
       <h1>Payment Rejected ❌</h1>
       <p>Hello ${user.firstName} ${user.lastName},</p>
-      <p>Unfortunately, your payment has been rejected.</p>
+      <p>Unfortunately, your payment of ${payment.month} has been rejected.</p>
       <p>If you believe this is a mistake, please contact our support team.</p>
       <br>
       <strong>Devians LMS Team</strong>

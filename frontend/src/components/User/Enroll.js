@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
   Input,
@@ -26,6 +27,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { logoutUser } from "../../redux/features/auth/authActions";
+import { addPayment } from "../../redux/features/payments/paymentActions";
+
 const { Dragger } = Upload;
 const { Option } = Select;
 
@@ -41,6 +46,13 @@ const Enroll = () => {
   const [loading, setLoading] = useState(false);
 
   const history = useNavigate();
+  const dispatch = useDispatch();
+  const {
+    isAuthenticated,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useSelector(selectAuthState);
   const [form] = Form.useForm();
 
   // Get user details from localStorage
@@ -65,69 +77,60 @@ const Enroll = () => {
 
   useEffect(() => {
     form.setFieldsValue({
-      firstName: localStorage.getItem("firstname") || "",
-      lastName: localStorage.getItem("lastname") || "",
-      studentId: localStorage.getItem("studentID") || "",
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      studentId: user?.studentId || "",
     });
   }, []);
 
   const logoutHandler = () => {
-    localStorage.setItem("authToken", null);
-    localStorage.removeItem("firstname");
-    localStorage.removeItem("lastname");
-    localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    localStorage.removeItem("status");
-    localStorage.removeItem("studentID");
-    localStorage.removeItem("id");
-    localStorage.removeItem("grade");
-    localStorage.removeItem("telephone");
+    dispatch(logoutUser());
     setAvailable(false);
     history("/login");
   };
 
   const handleSubmit = async () => {
     setLoading(true);
-    try {
-      const values = await form.validateFields();
-      const { firstName, lastName, studentId, amount, month, remarks } = values;
+    const values = await form.validateFields();
+    const { firstName, lastName, studentId, amount, month, remarks } = values;
 
-      const requestData = {
-        firstName,
-        lastName,
-        studentId,
-        amount,
-        month,
-        remarks,
-      };
+    const requestData = {
+      firstName,
+      lastName,
+      studentId,
+      amount,
+      month,
+      remarks,
+    };
 
-      console.log("Submitted Data:", requestData);
+    console.log("Submitted Data:", requestData);
 
-      const response = await axios.post("/payments/add", requestData);
+    const response = await dispatch(addPayment(requestData));
 
-      if (response.status === 201) {
-        setTimeout(() => {
-          notification.success({
-            message: "Success",
-            description: "Payment details added Successfully!",
-            placement: "top",
-          });
-          form.resetFields();
-          setLoading(false);
-        }, 3000);
-      } else {
-        message.error(response.data.message || "Something went wrong!");
-      }
-    } catch (error) {
-      message.error("Failed to submit payment details!");
-      console.error(error);
-    } finally {
+    if (response.success) {
+      setTimeout(() => {
+        notification.success({
+          message: "Success",
+          description: "Payment details added Successfully!",
+          placement: "top",
+        });
+        form.setFieldsValue({
+          amount: undefined,
+          month: undefined,
+          remarks: undefined,
+        });
+        setLoading(false);
+      }, 3000);
+    } else {
       setLoading(false);
+      notification.error({
+        message: "Error",
+        description: response.message,
+        placement: "top",
+      });
     }
   };
 
-  const firstName = localStorage.getItem("firstname") || "U";
-  const userStatus = localStorage.getItem("status");
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
       <div className="relative flex justify-center">
@@ -148,7 +151,7 @@ const Enroll = () => {
         type="default"
         block
         className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${firstName}`)}
+        onClick={() => history(`/user-profile/${user?.firstName}`)}
       >
         Profile
       </Button>
@@ -156,9 +159,7 @@ const Enroll = () => {
         type="default"
         block
         className="mb-2"
-        onClick={() =>
-          history(`/user-payments/${localStorage.getItem("firstname")}`)
-        }
+        onClick={() => history(`/user-payments/${user?.firstName}`)}
       >
         Payments
       </Button>
@@ -177,20 +178,18 @@ const Enroll = () => {
       <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         {/* Navbar */}
         <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-          <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
+          <h1 className="text-xl font-bold">
+            LMS Platform - Devians (ඩේවියන්ස්) 🏛️
+          </h1>
           {/* Desktop Menu */}
           <div className="hidden md:flex gap-4">
             <Button
               type={
-                localStorage.getItem("status") === "active"
-                  ? "default"
-                  : "primary"
+                user?.membership?.status === "active" ? "default" : "primary"
               }
               className="!h-10 flex items-center justify-center"
             >
-              {localStorage.getItem("status") === "active"
-                ? "Classes"
-                : "Enroll"}
+              {user?.membership?.status === "active" ? "Classes" : "Enroll"}
             </Button>
             {/* Profile Dropdown */}
             <Dropdown
@@ -200,17 +199,17 @@ const Enroll = () => {
             >
               <div className="relative cursor-pointer">
                 <Avatar className="bg-blue-500" size={40}>
-                  {firstName.charAt(0).toUpperCase()}
+                  {user?.firstName?.charAt(0).toUpperCase()}
                 </Avatar>
-                {userStatus && (
+                {user?.membership?.status && (
                   <span
                     className={`absolute top-0 right-0 text-sm ${
-                      userStatus === "active"
+                      user?.membership?.status === "active"
                         ? "text-green-500"
                         : "text-yellow-500"
                     }`}
                   >
-                    {userStatus === "active" ? "✅" : "⏳"}
+                    {user?.membership?.status === "active" ? "✅" : "⏳"}
                   </span>
                 )}
               </div>
@@ -234,7 +233,7 @@ const Enroll = () => {
         {/* Responsive Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-            {localStorage.getItem("status") === "active" ? (
+            {luser?.membership?.status === "active" ? (
               <Button type="default">Classes</Button>
             ) : (
               <Button type="primary">Enroll</Button>
@@ -242,15 +241,13 @@ const Enroll = () => {
             {/* Profile Dropdown */}
             <Button
               type="default"
-              onClick={() => history(`/user-profile/${firstName}`)}
+              onClick={() => history(`/user-profile/${user?.firstName}`)}
             >
               Profile
             </Button>
             <Button
               type="default"
-              onClick={() =>
-                history(`/user-payments/${localStorage.getItem("firstname")}`)
-              }
+              onClick={() => history(`/user-payments/${user?.firstName}`)}
             >
               Payments
             </Button>
