@@ -4,7 +4,7 @@ const sendEmail = require("./sendEmail");
 
 // Define the cron job to reset expired memberships
 const resetExpiredMemberships = () => {
-  cron.schedule("*/10 * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     try {
       // Get the current date
       const currentDate = new Date();
