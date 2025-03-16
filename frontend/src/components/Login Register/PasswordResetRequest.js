@@ -1,4 +1,12 @@
-import { Modal, Button, Tooltip, Input, Spin, ConfigProvider } from "antd";
+import {
+  Modal,
+  Button,
+  Tooltip,
+  Input,
+  Spin,
+  ConfigProvider,
+  notification,
+} from "antd";
 import React, { useState, useEffect } from "react";
 import { Form } from "antd";
 import {
@@ -53,6 +61,11 @@ const ForgotPassword = () => {
 
       setSuccess(data.verify);
       setTimeout(() => {
+        notification.success({
+          message: "Success",
+          description: "Email sent",
+          placement: "topRight",
+        });
         setLoading(false);
         setVisible(false);
       }, 3000);
@@ -61,7 +74,10 @@ const ForgotPassword = () => {
         if (error.response.status === 404) {
           setError("User not found. Please enter a valid email address!");
         } else {
-          setError(error.response.data.error || "Something went wrong. Please try again.");
+          setError(
+            error.response.data.error ||
+              "Something went wrong. Please try again."
+          );
         }
       } else {
         setError("Network error. Please check your connection.");
@@ -70,7 +86,7 @@ const ForgotPassword = () => {
         setLoading(false);
         setError("");
         setSuccess("");
-      }, 5000);
+      }, 3000);
     }
   };
 

@@ -96,7 +96,7 @@ const Enroll = () => {
           notification.success({
             message: "Success",
             description: "Payment details added Successfully!",
-            placement: "top",
+            placement: "topRight",
           });
           form.setFieldsValue({
             amount: undefined,
@@ -110,7 +110,7 @@ const Enroll = () => {
         notification.error({
           message: "Error",
           description: response.message,
-          placement: "top",
+          placement: "topRight",
         });
       }
     } catch (error) {
@@ -120,19 +120,19 @@ const Enroll = () => {
         notification.error({
           message: "Error",
           description: "Please enter the amount!",
-          placement: "top",
+          placement: "topRight",
         });
       } else if (error.message === "Please select a month!") {
         notification.error({
           message: "Error",
           description: "Please select a month!",
-          placement: "top",
+          placement: "topRight",
         });
       } else {
         notification.error({
           message: "Error",
           description: "Form validation failed!",
-          placement: "top",
+          placement: "topRight",
         });
       }
     }

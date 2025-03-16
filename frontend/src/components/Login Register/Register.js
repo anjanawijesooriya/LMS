@@ -100,7 +100,7 @@ const Register = () => {
         notification.success({
           message: "Success",
           description: "Successfully created your profile! 🎉",
-          placement: "top",
+          placement: "topRight",
         });
       }, 2000);
 
@@ -110,7 +110,7 @@ const Register = () => {
       notification.error({
         message: "Error",
         description: response.message,
-        placement: "top",
+        placement: "topRight",
       });
     }
   };

@@ -28,7 +28,7 @@ const resetPasswordTemplate = (resetURL) => {
 
       <p style="color: #777; font-size: 12px;">
         Or copy and paste this link in your browser: <br>
-        <a href="${resetURL}" style="color: #007bff; word-break: break-all;">${resetURL}</a>
+        <a href="${resetURL}" target="_blank" style="color: #007bff; word-break: break-all; cursor: pointer;">${resetURL}</a>
       </p>
     </div>
   `;

@@ -112,7 +112,7 @@ const Profile = () => {
         notification.success({
           message: "Success",
           description: "Profile updated Successfully✅",
-          placement: "top",
+          placement: "topRight",
         });
         setEditing(false);
         setLoading(false);
@@ -121,7 +121,7 @@ const Profile = () => {
           notification.warning({
             message: "Logging Out",
             description: "You are logging out now, Please login again.",
-            placement: "top",
+            placement: "topRight",
           });
 
           setTimeout(() => {
@@ -134,7 +134,7 @@ const Profile = () => {
       notification.error({
         message: "Error",
         description: response.message,
-        placement: "top",
+        placement: "topRight",
       });
       setEditing(false);
       setLoading(false);

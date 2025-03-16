@@ -39,7 +39,7 @@ const ResetPassword = () => {
       notification.success({
         message: "Password Reset Successfully",
         description: "You can now log in with your new password.",
-        placement: "top",
+        placement: "topRight",
       });
 
       // Redirect to home after a slight delay

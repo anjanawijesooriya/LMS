@@ -80,7 +80,7 @@ const Login = () => {
       notification.error({
         message: "Error",
         description: response.message,
-        placement: "top",
+        placement: "topRight",
       });
       setTimeout(() => {
         setError("");
