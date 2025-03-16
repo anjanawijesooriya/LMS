@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const cloudinary = require("./BACKEND/utils/cloudinary");
+const resetExpiredMemberships = require("./BACKEND/utils/cronJobs");
 
 dotenv.config();
 
@@ -22,6 +23,9 @@ const PORT = process.env.PORT || 8071;
 
 app.use(cors());
 app.use(express.json());
+
+// Start the cron job when the server starts
+resetExpiredMemberships(); // This will start the cron job
 
 app.listen(PORT, () => {
   console.log(`Server is up and running in port ${PORT}`);
