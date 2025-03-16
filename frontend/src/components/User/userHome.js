@@ -379,11 +379,11 @@ const UserHome = () => {
           accordion
           className="mt-6 dark:bg-gray-600 dark:text-white font-bold"
         >
-          <Panel header="How do I enroll?" key="1" className="dark: text-white">
-            <p>Simply sign up and choose a course to start learning.</p>
+          <Panel header="How do I enroll to classes?" key="1" className="dark: text-white">
+            <p>Simply click on Enroll button at top, if you are not a active student in the platform.</p>
           </Panel>
-          <Panel header="Are courses self-paced?" key="2">
-            <p>Yes, you can learn at your own pace with lifetime access.</p>
+          <Panel header="Is membership expiring" key="2">
+            <p>Yes, your membership is expiring month by month you need to make the necessary payment and can regain your membership.</p>
           </Panel>
         </Collapse>
       </motion.section>

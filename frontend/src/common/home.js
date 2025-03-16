@@ -231,9 +231,9 @@ const Home = () => {
           className="mt-6 dark:bg-gray-600 dark:text-white font-bold"
         >
           <Panel header="How do I enroll?" key="1" className="dark: text-white">
-            <p>Simply sign up and choose a course to start learning.</p>
+            <p>Simply sign up by clicking Sign Up button and fill relevant details to register.</p>
           </Panel>
-          <Panel header="Are courses self-paced?" key="2">
+          <Panel header="Are classes and courses self-paced?" key="2">
             <p>Yes, you can learn at your own pace with lifetime access.</p>
           </Panel>
         </Collapse>
