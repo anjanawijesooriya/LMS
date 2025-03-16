@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, Card, Rate, Switch, Spin, Collapse } from "antd";
-import {
-  SearchOutlined,
-  MoonOutlined,
-  SunOutlined,
-  CloseOutlined,
-  MenuOutlined,
-} from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { Button, Card, Rate, Switch, Spin, Collapse } from "antd";
+import { CloseOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
+import { fetchFeaturedCourses } from "../redux/features/featuredCourses/courseActions";
+import { selectFeaturedCourses } from "../redux/features/featuredCourses/courseSelectors";
 
 const { Panel } = Collapse;
 
@@ -28,6 +26,9 @@ const Home = () => {
   const [data, setData] = useState([]);
 
   const history = useNavigate();
+  const dispatch = useDispatch();
+
+  const { featuredCourses } = useSelector(selectFeaturedCourses);
 
   useEffect(() => {
     setTimeout(() => {
@@ -46,15 +47,8 @@ const Home = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/courses/");
-        setData(res.data);
-      } catch (error) {
-        console.log("Error fetching courses:", error);
-      }
-    })();
-  }, []);
+    dispatch(fetchFeaturedCourses());
+  }, [dispatch]);
 
   console.log("first", data);
 
@@ -66,7 +60,9 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
+        <h1 className="text-xl font-bold">
+          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
+        </h1>
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
           <Button type="default" onClick={() => history("/login")}>
@@ -122,7 +118,11 @@ const Home = () => {
           Join thousands of students learning from top educators
         </p>
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          <Button type="default" className="border-white text-black" onClick={() => history("/login")}>
+          <Button
+            type="default"
+            className="border-white text-black"
+            onClick={() => history("/login")}
+          >
             Get Started
           </Button>
         </div>
@@ -140,7 +140,7 @@ const Home = () => {
           Featured Courses
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {data.map((course, index) => (
+          {featuredCourses.map((course, index) => (
             <Card
               key={index}
               hoverable
@@ -231,7 +231,10 @@ const Home = () => {
           className="mt-6 dark:bg-gray-600 dark:text-white font-bold"
         >
           <Panel header="How do I enroll?" key="1" className="dark: text-white">
-            <p>Simply sign up by clicking Sign Up button and fill relevant details to register.</p>
+            <p>
+              Simply sign up by clicking Sign Up button and fill relevant
+              details to register.
+            </p>
           </Panel>
           <Panel header="Are classes and courses self-paced?" key="2">
             <p>Yes, you can learn at your own pace with lifetime access.</p>

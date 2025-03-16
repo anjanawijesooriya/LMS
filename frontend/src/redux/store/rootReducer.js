@@ -3,6 +3,7 @@ import authReducer from "../features/auth/authSlice";
 import userReducer from "../features/user/userSlice";
 import classReducer from "../features/classes/classSlice";
 import paymentReducer from "../features/payments/paymentSlice";
+import featuredCoursesReducer from "../features/featuredCourses/courseSlice";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // defaults to localStorage
 
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   classes: classReducer,
   payments: paymentReducer,
+  featuredCourses: featuredCoursesReducer,
 });
 
 // Wrap rootReducer with persistReducer

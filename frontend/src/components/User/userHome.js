@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
-  Input,
   Card,
   Rate,
   Switch,
@@ -12,18 +11,16 @@ import {
   Avatar,
 } from "antd";
 import {
-  SearchOutlined,
-  MoonOutlined,
-  SunOutlined,
   CloseOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser } from "../../redux/features/auth/authActions";
+import { selectFeaturedCourses } from "../../redux/features/featuredCourses/courseSelectors";
+import { fetchFeaturedCourses } from "../../redux/features/featuredCourses/courseActions";
 
 const { Panel } = Collapse;
 
@@ -49,6 +46,7 @@ const UserHome = () => {
     loading: authLoading,
     error: authError,
   } = useSelector(selectAuthState);
+  const { featuredCourses } = useSelector(selectFeaturedCourses);
 
   useEffect(() => {
     setTimeout(() => {
@@ -67,15 +65,8 @@ const UserHome = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/courses/");
-        setData(res.data);
-      } catch (error) {
-        console.log("Error fetching courses:", error);
-      }
-    })();
-  }, []);
+    dispatch(fetchFeaturedCourses());
+  }, [dispatch]);
 
   const logoutHandler = () => {
     dispatch(logoutUser());
@@ -291,7 +282,7 @@ const UserHome = () => {
           Featured Courses
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {data.map((course, index) => (
+          {featuredCourses.map((course, index) => (
             <Card
               key={index}
               hoverable

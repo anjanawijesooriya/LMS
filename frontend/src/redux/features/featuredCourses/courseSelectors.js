@@ -1,0 +1,1 @@
+export const selectFeaturedCourses = (state) => state.featuredCourses;
