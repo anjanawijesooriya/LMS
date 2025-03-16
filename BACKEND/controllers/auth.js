@@ -26,6 +26,7 @@ exports.register = async (req, res) => {
       <p>Your account has been successfully created!</p>
       <p>Now you can login to our online learning platform.</p>
       <p>Email: ${email}</p>
+      <p>Telephone Number: ${telephoneNumber}</p>
       <p>Grade: ${grade}</p>
       <p>Thank you for joining with us!</p>
       <br>
