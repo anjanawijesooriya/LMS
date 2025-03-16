@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Button, Switch, Spin, Dropdown, Avatar, Card, Badge } from "antd";
+import { Button, Switch, Spin, Dropdown, Avatar, Card, } from "antd";
 import {
   CloseOutlined,
   MenuOutlined,
@@ -20,7 +20,6 @@ const ClassDetails = () => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
-  const [available, setAvailable] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const history = useNavigate();
   const dispatch = useDispatch();
@@ -59,7 +58,6 @@ const ClassDetails = () => {
 
   const logoutHandler = () => {
     dispatch(logoutUser());
-    setAvailable(false);
     history("/login");
   };
 
@@ -103,18 +101,6 @@ const ClassDetails = () => {
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
       <div className="relative flex justify-center">
-        {/* <Avatar className="bg-blue-500" size={40}>
-              {firstName.charAt(0).toUpperCase()}
-            </Avatar>
-            {userStatus && (
-              <span
-                className={`absolute top-0 right-0 text-lg ${
-                  userStatus === "active" ? "text-green-500" : "text-yellow-500"
-                }`}
-              >
-                {userStatus === "active" ? "✅" : "⏳"}
-              </span>
-            )} */}
       </div>
       <Button
         type="default"
@@ -177,12 +163,6 @@ const ClassDetails = () => {
               )}
             </div>
           </Dropdown>
-          {/* <Switch
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-          /> */}
         </div>
 
         {/* Mobile & Medium Menu Toggle */}

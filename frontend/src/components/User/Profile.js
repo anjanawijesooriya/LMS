@@ -4,29 +4,20 @@ import {
   Button,
   Input,
   Card,
-  Rate,
   Switch,
   Spin,
-  Collapse,
   Dropdown,
   Avatar,
   Form,
-  Upload,
-  message,
   Select,
   notification,
 } from "antd";
 import {
-  SearchOutlined,
-  MoonOutlined,
-  SunOutlined,
   CloseOutlined,
   MenuOutlined,
-  InboxOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser, editUser } from "../../redux/features/auth/authActions";
@@ -39,7 +30,6 @@ const Profile = () => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
-  const [available, setAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -71,27 +61,12 @@ const Profile = () => {
 
   const logoutHandler = () => {
     dispatch(logoutUser());
-    setAvailable(false);
     history("/login");
   };
 
-  const firstName = localStorage.getItem("firstname") || "U";
-  const userStatus = localStorage.getItem("status");
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
       <div className="relative flex justify-center">
-        {/* <Avatar className="bg-blue-500" size={40}>
-            {firstName.charAt(0).toUpperCase()}
-          </Avatar>
-          {userStatus && (
-            <span
-              className={`absolute top-0 right-0 text-lg ${
-                userStatus === "active" ? "text-green-500" : "text-yellow-500"
-              }`}
-            >
-              {userStatus === "active" ? "✅" : "⏳"}
-            </span>
-          )} */}
       </div>
       <Button
         type="default"
@@ -218,12 +193,6 @@ const Profile = () => {
                 )}
               </div>
             </Dropdown>
-            {/* <Switch
-        checked={darkMode}
-        onChange={() => setDarkMode(!darkMode)}
-        checkedChildren="🌙"
-        unCheckedChildren="☀️"
-      /> */}
           </div>
 
           {/* Mobile & Medium Menu Toggle */}

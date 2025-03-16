@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Layout, notification, Spin, } from "antd";
+import { notification, Spin, } from "antd";
 import "./Login Register.scss";
 
 import { LoadingOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import PasswordResetRequest from "./PasswordResetRequest";
 import { FaLock, FaEnvelope } from "react-icons/fa";
 
@@ -16,7 +15,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [available, setAvailable] = useState("");
   const [loading, setLoading] = useState(false); //additional
   const [isError, setIsError] = useState(false);
   const [isValid, setIsValid] = useState(false);

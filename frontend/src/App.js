@@ -29,7 +29,6 @@ import Dashboard from "./components/Admin/Dashboard";
 
 const App = () => {
   const [showButton, setShowButton] = useState(false);
-  const [available, setAvailable] = useState(false);
 
   const { user, isAuthenticated } = useSelector(selectAuthState);
 

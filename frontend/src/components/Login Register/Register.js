@@ -4,7 +4,6 @@ import { FaUser, FaLock, FaEnvelope, FaPhone } from "react-icons/fa";
 import { notification, Spin } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { registerUser } from "../../redux/features/auth/authActions";
 

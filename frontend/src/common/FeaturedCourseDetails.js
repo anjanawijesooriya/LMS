@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Card, Rate, Switch, Spin, Dropdown, Avatar } from "antd";
+import { Button, Card, Switch, Spin, Dropdown, Avatar } from "antd";
 import { CloseOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,13 +11,11 @@ import { selectAuthState } from "../redux/features/auth/authSelectors";
 import { logoutUser } from "../redux/features/auth/authActions";
 
 const FeaturedCourseDetails = () => {
-  const [available, setAvailable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
   const [loader, setLoader] = useState(true);
-  const [data, setData] = useState([]);
 
   const history = useNavigate();
   const dispatch = useDispatch();

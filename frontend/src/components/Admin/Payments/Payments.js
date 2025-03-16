@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Table, Input, Spin, Button, notification, Tag } from "antd";
 import {
-  DeleteOutlined,
-  LoadingOutlined,
-  EditOutlined,
   CheckOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
 import axios from "axios";
-import moment from "moment";
 
 const { Search } = Input;
 

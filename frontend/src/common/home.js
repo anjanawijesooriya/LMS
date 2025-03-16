@@ -16,13 +16,11 @@ const fadeInUp = {
 };
 
 const Home = () => {
-  const [available, setAvailable] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
   const [loader, setLoader] = useState(true);
-  const [data, setData] = useState([]);
 
   const history = useNavigate();
   const dispatch = useDispatch();
@@ -49,8 +47,6 @@ const Home = () => {
     dispatch(fetchFeaturedCourses());
   }, [dispatch]);
 
-  console.log("first", data);
-
   return loader ? (
     <center className="mt-80">
       <Spin size="large" />
@@ -70,12 +66,6 @@ const Home = () => {
           <Button type="primary" onClick={() => history("/register")}>
             Sign Up
           </Button>
-          {/* <Switch
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-          /> */}
         </div>
 
         {/* Mobile & Medium Menu Toggle */}
