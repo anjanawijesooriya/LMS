@@ -10,10 +10,7 @@ import {
   Dropdown,
   Avatar,
 } from "antd";
-import {
-  CloseOutlined,
-  MenuOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -104,9 +101,7 @@ const UserHome = () => {
         type="default"
         block
         className="mb-2"
-        onClick={() =>
-          history(`/user-payments/${user?.firstName}`)
-        }
+        onClick={() => history(`/user-payments/${user?.firstName}`)}
       >
         Payments
       </Button>
@@ -124,15 +119,13 @@ const UserHome = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
+        <h1 className="text-xl font-bold">
+          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
+        </h1>
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
           <Button
-            type={
-              user?.membership?.status === "active"
-                ? "default"
-                : "primary"
-            }
+            type={user?.membership?.status === "active" ? "default" : "primary"}
             className="!h-10 flex items-center justify-center"
             onClick={() =>
               user?.membership?.status === "active"
@@ -187,18 +180,14 @@ const UserHome = () => {
           {user?.membership?.status === "active" ? (
             <Button
               type="default"
-              onClick={() =>
-                history(`/user-classes/${user?.firstName}`)
-              }
+              onClick={() => history(`/user-classes/${user?.firstName}`)}
             >
               Classes
             </Button>
           ) : (
             <Button
               type="primary"
-              onClick={() =>
-                history(`/user-enroll/${user?.firstName}`)
-              }
+              onClick={() => history(`/user-enroll/${user?.firstName}`)}
             >
               Enroll
             </Button>
@@ -212,9 +201,7 @@ const UserHome = () => {
           </Button>
           <Button
             type="default"
-            onClick={() =>
-              history(`/user-payments/${user?.firstName}`)
-            }
+            onClick={() => history(`/user-payments/${user?.firstName}`)}
           >
             Payments
           </Button>
@@ -247,9 +234,7 @@ const UserHome = () => {
             <Button
               type="default"
               className="bg-white text-blue-600"
-              onClick={() =>
-                history(`/user-classes/${user?.firstName}`)
-              }
+              onClick={() => history(`/user-classes/${user?.firstName}`)}
             >
               Explore Courses
             </Button>
@@ -302,7 +287,13 @@ const UserHome = () => {
                 {course.instructor}
               </p>
               <Rate disabled defaultValue={5} className="mt-2" />
-              <Button type="primary" className="mt-3 w-full">
+              <Button
+                type="primary"
+                className="mt-3 w-full"
+                onClick={() =>
+                  history(`/featured-course/${user?.firstName}/${course._id}`)
+                }
+              >
                 View
               </Button>
             </Card>
@@ -370,11 +361,21 @@ const UserHome = () => {
           accordion
           className="mt-6 dark:bg-gray-600 dark:text-white font-bold"
         >
-          <Panel header="How do I enroll to classes?" key="1" className="dark: text-white">
-            <p>Simply click on Enroll button at top, if you are not a active student in the platform.</p>
+          <Panel
+            header="How do I enroll to classes?"
+            key="1"
+            className="dark: text-white"
+          >
+            <p>
+              Simply click on Enroll button at top, if you are not a active
+              student in the platform.
+            </p>
           </Panel>
           <Panel header="Is membership expiring" key="2">
-            <p>Yes, your membership is expiring month by month you need to make the necessary payment and can regain your membership.</p>
+            <p>
+              Yes, your membership is expiring month by month you need to make
+              the necessary payment and can regain your membership.
+            </p>
           </Panel>
         </Collapse>
       </motion.section>

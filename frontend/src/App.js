@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import "@ant-design/v5-patch-for-react-19";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ArrowUpOutlined } from "@ant-design/icons";
 import { Button } from "antd";
+
+import { selectAuthState } from "./redux/features/auth/authSelectors";
 
 //routes
 import PrivateRoute from "./components/routes/PrivateRoute";
@@ -13,6 +16,7 @@ import Login from "./components/Login Register/Login";
 import Register from "./components/Login Register/Register";
 import ResetPassword from "./components/Login Register/ResetPassword";
 import Home from "./common/Home";
+import FeaturedCourseDetails from "./common/FeaturedCourseDetails";
 import UserHome from "./components/User/userHome";
 import Enroll from "./components/User/Enroll";
 import Classes from "./components/User/Classes";
@@ -26,6 +30,8 @@ import Dashboard from "./components/Admin/Dashboard";
 const App = () => {
   const [showButton, setShowButton] = useState(false);
   const [available, setAvailable] = useState(false);
+
+  const { user, isAuthenticated } = useSelector(selectAuthState);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,6 +49,14 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route
+          path={
+            isAuthenticated
+              ? "/featured-course/:username/:id"
+              : "/featured-course/:id"
+          }
+          element={<FeaturedCourseDetails />}
+        />
         <Route path="/passwordreset/:resetToken" element={<ResetPassword />} />
         {/*logged user*/}
         <Route

@@ -4,7 +4,6 @@ import { Button, Card, Rate, Switch, Spin, Collapse } from "antd";
 import { CloseOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import { fetchFeaturedCourses } from "../redux/features/featuredCourses/courseActions";
 import { selectFeaturedCourses } from "../redux/features/featuredCourses/courseSelectors";
@@ -160,7 +159,11 @@ const Home = () => {
                 {course.instructor}
               </p>
               <Rate disabled defaultValue={5} className="mt-2" />
-              <Button type="primary" className="mt-3 w-full">
+              <Button
+                type="primary"
+                className="mt-3 w-full"
+                onClick={() => history(`/featured-course/${course._id}`)}
+              >
                 View
               </Button>
             </Card>
