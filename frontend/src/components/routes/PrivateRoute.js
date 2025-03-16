@@ -1,20 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { Spin } from "antd";
+import { useSelector, useDispatch } from "react-redux";
+import { Spin, Modal, Button } from "antd";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
+import { logoutUser } from "../../redux/features/auth/authActions";
 
 const PrivateRoute = ({ children }) => {
   const [loader, setLoader] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const dispatch = useDispatch();
 
   const { token } = useSelector(selectAuthState);
 
   useEffect(() => {
+    const checkSession = () => {
+      const loginTime = localStorage.getItem("loginTime");
+      if (!loginTime) return;
+
+      const currentTime = new Date().getTime();
+      const expirationTime = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+      if (currentTime - loginTime > expirationTime) {
+        setSessionExpired(true);
+      }
+    };
+
     setTimeout(() => {
       setLoader(false);
     }, 2000);
+
+    checkSession();
   }, []);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
 
   if (!token || localStorage.getItem("authToken") === "null") {
     return loader ? (
@@ -25,8 +46,12 @@ const PrivateRoute = ({ children }) => {
           transition={{ duration: 0.5 }}
           className="p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg text-center"
         >
-          <h1 className="text-2xl font-bold text-red-600">Unauthorized Access ❌</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Redirecting to login...</p>
+          <h1 className="text-2xl font-bold text-red-600">
+            Unauthorized Access ❌
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
+            Redirecting to login...
+          </p>
           <div className="mt-4">
             <Spin size="large" />
           </div>
@@ -34,6 +59,24 @@ const PrivateRoute = ({ children }) => {
       </div>
     ) : (
       <Navigate to="/login" replace />
+    );
+  }
+
+  // Show session expired modal if the session is expired
+  if (sessionExpired) {
+    return (
+      <Modal
+        title="Session Expired"
+        open={sessionExpired}
+        closable={false}
+        footer={[
+          <Button type="primary" onClick={handleLogout}>
+            Logout
+          </Button>,
+        ]}
+      >
+        <p>Your session has expired. Please log in again.</p>
+      </Modal>
     );
   }
 

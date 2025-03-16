@@ -22,6 +22,7 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = true;
       localStorage.setItem("authToken", action.payload.token);
+      localStorage.setItem("loginTime", new Date().getTime()); // Save login time
     },
     loginFailure: (state, action) => {
       state.loading = false;
@@ -47,6 +48,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       localStorage.setItem("authToken", null);
+      localStorage.removeItem("loginTime");
       storage.removeItem("persist:root"); // Clear persisted Redux state
     },
     editProfileStart: (state) => {
