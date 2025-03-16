@@ -66,7 +66,7 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">LMS Platform - Devians 🏛️</h1>
+        <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-4">
           <Button type="default" onClick={() => history("/login")}>
