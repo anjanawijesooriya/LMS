@@ -11,18 +11,25 @@ import {
   Form,
   Select,
   notification,
+  Modal,
 } from "antd";
 import {
   CloseOutlined,
   MenuOutlined,
   LoadingOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
-import { logoutUser, editUser } from "../../redux/features/auth/authActions";
+import {
+  logoutUser,
+  editUser,
+  deleteUser,
+} from "../../redux/features/auth/authActions";
 
 const { Option } = Select;
+const { confirm } = Modal;
 
 const Profile = () => {
   const [loader, setLoader] = useState(true);
@@ -64,10 +71,42 @@ const Profile = () => {
     history("/login");
   };
 
+  const handleDeleteAccount = () => {
+    confirm({
+      title: "Are you sure you want to delete your account?",
+      icon: <ExclamationCircleOutlined />,
+      content: "This action is irreversible. All your data will be lost.",
+      okText: "Yes, Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const response = await dispatch(deleteUser(user?.id));
+
+        if (response.success) {
+          notification.success({
+            message: "Account Deleted",
+            description: "Your account has been successfully deleted.",
+            placement: "topRight",
+          });
+
+          setTimeout(() => {
+            dispatch(logoutUser());
+            history("/login");
+          }, 3000);
+        } else {
+          notification.error({
+            message: "Error",
+            description: response.message,
+            placement: "topRight",
+          });
+        }
+      },
+    });
+  };
+
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <div className="relative flex justify-center">
-      </div>
+      <div className="relative flex justify-center"></div>
       <Button
         type="default"
         block
@@ -128,8 +167,8 @@ const Profile = () => {
             dispatch(logoutUser());
             history("/login");
           }, 3000); // Delay logout after showing warning message
-        }, 3000);// Delay warning message after success
-      }, 3000); 
+        }, 3000); // Delay warning message after success
+      }, 3000);
     } else {
       notification.error({
         message: "Error",
@@ -154,7 +193,9 @@ const Profile = () => {
       <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         {/* Navbar */}
         <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-          <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
+          <h1 className="text-xl font-bold">
+            LMS Platform - Devians (ඩේවියන්ස්) 🏛️
+          </h1>
           {/* Desktop Menu */}
           <div className="hidden md:flex gap-4">
             <Button
@@ -380,6 +421,14 @@ const Profile = () => {
                     onClick={handleEdit}
                   >
                     Edit Profile
+                  </Button>
+                  <Button
+                    type="primary"
+                    danger
+                    className="w-full mt-4"
+                    onClick={handleDeleteAccount}
+                  >
+                    Delete Account
                   </Button>
                 </div>
               )}
