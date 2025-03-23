@@ -66,6 +66,22 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    deleteProfileStart: (state) => {
+      state.loading = true;
+    },
+    deleteProfileSuccess: (state) => {
+      state.loading = false;
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.setItem("authToken", null);
+      localStorage.removeItem("loginTime");
+      storage.removeItem("persist:root"); // Clear persisted Redux state
+    },
+    deleteProfileFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
   },
 });
 
@@ -79,6 +95,9 @@ export const {
   editProfileStart,
   editProfileSuccess,
   editProfileFailure,
+  deleteProfileStart,
+  deleteProfileSuccess,
+  deleteProfileFailure,
   logout,
 } = authSlice.actions;
 export default authSlice.reducer;

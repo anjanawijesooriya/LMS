@@ -8,6 +8,9 @@ import {
   editProfileStart,
   editProfileSuccess,
   editProfileFailure,
+  deleteProfileStart,
+  deleteProfileSuccess,
+  deleteProfileFailure,
   logout,
 } from "./authSlice";
 import axios from "axios";
@@ -130,6 +133,40 @@ export const editUser = (userData) => async (dispatch) => {
     setTimeout(() => {
       dispatch(editProfileFailure(null));
     }, 3000);
+    return { success: false, message: errorMessage };
+  }
+};
+
+export const deleteUser = (userId) => async (dispatch) => {
+  try {
+    dispatch(deleteProfileStart());
+    await axios.delete(`/api/auth/delete/${userId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    dispatch(deleteProfileSuccess());
+    return { success: true };
+  } catch (error) {
+    let errorMessage =
+      error?.response?.data?.error ||
+      (error?.status === 404
+        ? "User not found."
+        : "Something went wrong. Please try again.");
+
+    if (error.response) {
+      console.error(error.response.data);
+    } else if (error.request) {
+      console.error("No response from server:", error.request);
+    } else {
+      console.error("Error:", error.message);
+    }
+
+    dispatch(deleteProfileFailure(errorMessage));
+    setTimeout(() => {
+      dispatch(deleteProfileFailure(null));
+    }, 3000);
+
     return { success: false, message: errorMessage };
   }
 };
