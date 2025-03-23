@@ -32,12 +32,12 @@ const authSlice = createSlice({
     registerStart: (state) => {
       state.loading = true;
     },
-    registerSuccess: (state, action) => {
+    registerSuccess: (state) => {
       state.loading = false;
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-      localStorage.setItem("authToken", action.payload.token);
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.setItem("authToken", null);
     },
     registerFailure: (state, action) => {
       state.loading = false;
