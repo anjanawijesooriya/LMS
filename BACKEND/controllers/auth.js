@@ -234,11 +234,41 @@ exports.editUser = async (req, res) => {
 // 🔹 **Delete User**
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user)
+    // Step 1: Retrieve user before deletion
+    const user = await User.findById(req.params.id);
+    if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
+
+    // Store email for notification before deleting
+    const userEmail = user.email;
+    const userName = `${user.firstName} ${user.lastName}`;
+
+    // Step 2: Delete the user
+    await User.findByIdAndDelete(req.params.id);
+
+    // Step 3: Send account deletion email
+    const message = `
+       <h1>Account Deleted - LMS Platform ✅</h1>
+       <p>Hello ${userName},</p>
+       <p>Your account has been successfully deleted!</p>
+       <p>You will need to register again to access our online learning platform.</p>
+       <p>Thank you for being with us!</p>
+       <br>
+       <strong>Devians Team</strong>
+     `;
+
+    try {
+      await sendEmail({
+        to: userEmail,
+        subject: "Your Account Has Been Deleted",
+        html: message,
+      });
+    } catch (emailError) {
+      console.error("Error sending email:", emailError);
+    }
 
     res.json({ success: true, message: "User deleted successfully" });
   } catch (error) {
