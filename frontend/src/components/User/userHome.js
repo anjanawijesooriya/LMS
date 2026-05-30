@@ -44,10 +44,9 @@ const UserHome = () => {
   const { featuredCourses } = useSelector(selectFeaturedCourses);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoader(false);
-    }, 3000);
-  });
+    const timer = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (darkMode) {

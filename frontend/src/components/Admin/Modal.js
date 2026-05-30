@@ -1,16 +1,14 @@
 import React, { useEffect } from "react";
-import {
-  Modal,
-  Button,
-  Form,
-  Input,
-  DatePicker,
-  TimePicker,
-  Select,
-} from "antd";
+import { Modal, Button, Form, Input, DatePicker, TimePicker, Select } from "antd";
 import moment from "moment";
 
 const { Option } = Select;
+
+const GRADES = [
+  "Pre-School","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5",
+  "Grade 6","Grade 7","Grade 8","Grade 9","Grade 10","Grade 11",
+  "Grade 12","Grade 13",
+];
 
 const CustomModal = ({
   visible,
@@ -20,7 +18,7 @@ const CustomModal = ({
   title,
   content,
   isEditMode,
-  isAddMode, // New prop to determine if it's add mode
+  isAddMode,
   initialValues,
 }) => {
   const [form] = Form.useForm();
@@ -29,15 +27,11 @@ const CustomModal = ({
     if (isEditMode && initialValues) {
       form.setFieldsValue({
         ...initialValues,
-        classDate: initialValues.classDate
-          ? moment(initialValues.classDate)
-          : null, // Convert date string to moment object
-        classTime: initialValues.classTime
-          ? moment(initialValues.classTime, "HH:mm")
-          : null, // Convert time string to moment object
+        classDate: initialValues.classDate ? moment(initialValues.classDate) : null,
+        classTime: initialValues.classTime ? moment(initialValues.classTime, "HH:mm") : null,
       });
     } else if (isAddMode) {
-      form.resetFields(); // Reset form fields for add mode
+      form.resetFields();
     }
   }, [isEditMode, isAddMode, initialValues, form]);
 
@@ -47,12 +41,10 @@ const CustomModal = ({
       .then((values) => {
         const formattedValues = {
           ...values,
-          classDate: values.classDate
-            ? values.classDate.format("YYYY-MM-DD")
-            : null, // Convert date to string
-          classTime: values.classTime ? values.classTime.format("HH:mm") : null, // Convert time to string
+          classDate: values.classDate ? values.classDate.format("YYYY-MM-DD") : null,
+          classTime: values.classTime ? values.classTime.format("HH:mm") : null,
         };
-        onConfirm(formattedValues); // Submit the form data
+        onConfirm(formattedValues);
       })
       .catch((error) => console.error("Validation failed:", error));
   };
@@ -67,26 +59,17 @@ const CustomModal = ({
           Cancel
         </Button>,
         isEditMode || isAddMode ? (
-          <Button
-            key="confirm"
-            type="primary"
-            loading={confirmLoading}
-            onClick={handleSubmit}
-          >
+          <Button key="confirm" type="primary" loading={confirmLoading} onClick={handleSubmit}>
             {isAddMode ? "Add Class" : "Save Changes"}
           </Button>
         ) : (
-          <Button
-            key="confirm"
-            type="primary"
-            loading={confirmLoading}
-            onClick={onConfirm} // for delete confirmation
-          >
-            Yes
+          <Button key="confirm" type="primary" loading={confirmLoading} onClick={onConfirm}>
+            Confirm
           </Button>
         ),
       ]}
       centered
+      width={600}
     >
       {isEditMode || isAddMode ? (
         <Form form={form} layout="vertical">
@@ -95,67 +78,63 @@ const CustomModal = ({
             name="className"
             rules={[{ required: true, message: "Please enter class name" }]}
           >
-            <Input />
+            <Input placeholder="e.g. Grade 10 English — Week 1" />
           </Form.Item>
           <Form.Item
-            label="Class Link"
+            label="Zoom / Class Link"
             name="classLink"
-            rules={[{ required: true, message: "Please enter class link" }]}
+            rules={[
+              { required: true, message: "Please enter the class link" },
+              { type: "url", message: "Please enter a valid URL (https://...)" },
+            ]}
           >
-            <Input />
+            <Input placeholder="https://zoom.us/j/..." />
           </Form.Item>
           <Form.Item
             label="Description"
             name="description"
             rules={[{ required: true, message: "Please enter description" }]}
           >
-            <Input />
+            <Input.TextArea rows={2} placeholder="What will be covered in this class?" />
           </Form.Item>
           <Form.Item
             label="Class Grade"
             name="classGrade"
-            rules={[{ required: true, message: "Please select a Grade!" }]}
+            rules={[{ required: true, message: "Please select a grade" }]}
           >
             <Select placeholder="Select Grade">
-              {[
-                "Pre-School",
-                "Grade 1",
-                "Grade 2",
-                "Grade 3",
-                "Grade 4",
-                "Grade 5",
-                "Grade 6",
-                "Grade 7",
-                "Grade 8",
-                "Grade 9",
-                "Grade 10",
-                "Grade 11",
-                "Grade 12",
-                "Grade 13",
-              ].map((grade) => (
-                <Option key={grade} value={grade}>
-                  {grade}
-                </Option>
+              {GRADES.map((grade) => (
+                <Option key={grade} value={grade}>{grade}</Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            label="Class Date"
-            name="classDate"
-            rules={[{ required: true, message: "Please select class date" }]}
-          >
-            <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            label="Class Time"
-            name="classTime"
-            rules={[{ required: true, message: "Please select class time" }]}
-          >
-            <TimePicker format="HH:mm" style={{ width: "100%" }} />
+          <div className="flex gap-4">
+            <Form.Item
+              label="Class Date"
+              name="classDate"
+              rules={[{ required: true, message: "Please select class date" }]}
+              className="flex-1"
+            >
+              <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              label="Class Time"
+              name="classTime"
+              rules={[{ required: true, message: "Please select class time" }]}
+              className="flex-1"
+            >
+              <TimePicker format="HH:mm" style={{ width: "100%" }} />
+            </Form.Item>
+          </div>
+          <Form.Item label="Notes / Resources (optional)" name="notes">
+            <Input.TextArea
+              rows={3}
+              placeholder="Paste resource links, homework notes, vocabulary lists, etc."
+            />
           </Form.Item>
         </Form>
       ) : (
-        <p>{content}</p> // Display deletion confirmation content
+        <div>{content}</div>
       )}
     </Modal>
   );

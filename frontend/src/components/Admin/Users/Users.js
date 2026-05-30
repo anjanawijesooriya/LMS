@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Table, Tag, Input, Spin, Button, message, notification } from "antd";
-import { DeleteOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Table, Tag, Input, Spin, Button, notification } from "antd";
+import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
 import CustomModal from "../Modal";
 import axios from "axios";
 
 const { Search } = Input;
+
+const exportUsersCSV = (data) => {
+  const headers = ["First Name", "Last Name", "Email", "Student ID", "Grade", "Phone", "Membership Status", "Joined"];
+  const rows = data.map((u) => [
+    u.firstName, u.lastName, u.email, u.studentId, u.grade,
+    u.telephoneNumber, u.membership?.status || "pending",
+    u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "",
+  ]);
+  const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "students.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 const Users = ({ onUpdate }) => {
   const [loader, setLoader] = useState(true);
@@ -15,36 +32,34 @@ const Users = ({ onUpdate }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoader(false);
-    }, 3000);
+    const timer = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/api/auth/get");
-        const students = res.data.filter((user) => user.role === "student");
-        setData(students);
-        setFilteredData(students);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    })();
-  }, []);
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get("/api/auth/get");
+      const students = res.data.filter((u) => u.role === "student");
+      setData(students);
+      setFilteredData(students);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => { fetchUsers(); }, []);
 
   const handleSearch = (value) => {
+    const v = value.toLowerCase();
     const filtered = data.filter(
-      (user) =>
-        user.email.toLowerCase().includes(value.toLowerCase()) ||
-        user.firstName.toLowerCase().includes(value.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(value.toLowerCase()) ||
-        user.studentId.toLowerCase().includes(value.toLowerCase()) // Added this line
+      (u) =>
+        u.email.toLowerCase().includes(v) ||
+        u.firstName.toLowerCase().includes(v) ||
+        u.lastName.toLowerCase().includes(v) ||
+        (u.studentId || "").toLowerCase().includes(v)
     );
     setFilteredData(filtered);
   };
-
-  console.log(filteredData);
 
   const handleDeleteClick = (user) => {
     setSelectedUser(user);
@@ -52,42 +67,23 @@ const Users = ({ onUpdate }) => {
   };
 
   const confirmDelete = async () => {
-    if (!selectedUser?._id) {
-      notification.error({
-        message: "Error",
-        description: "Invalid user ID",
-      });
-      return;
-    }
-
+    if (!selectedUser?._id) return;
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        await axios.delete(`/api/auth/delete/${selectedUser._id}`);
-        setData((prevData) =>
-          prevData.filter((user) => user._id !== selectedUser._id)
-        );
-        setFilteredData((prevData) =>
-          prevData.filter((user) => user._id !== selectedUser._id)
-        );
-        notification.success({
-          message: "Success",
-          description: `${selectedUser.firstName} has been deleted successfully!`,
-          placement: "topRight",
-        });
-        onUpdate();
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        notification.error({
-          message: "Error",
-          description: "Error deleting user. Please try again later.",
-        });
-      } finally {
-        setLoading(false);
-        setModalVisible(false);
-        setSelectedUser(null);
-      }
-    }, 3000); // Delay for 3 seconds
+    try {
+      await axios.delete(`/api/auth/delete/${selectedUser._id}`);
+      notification.success({
+        message: "User Deleted",
+        description: `${selectedUser.firstName} ${selectedUser.lastName} deleted.`,
+      });
+      await fetchUsers();
+      onUpdate();
+    } catch (error) {
+      notification.error({ message: "Error deleting user." });
+    } finally {
+      setLoading(false);
+      setModalVisible(false);
+      setSelectedUser(null);
+    }
   };
 
   const columns = [
@@ -103,98 +99,77 @@ const Users = ({ onUpdate }) => {
       key: "lastName",
       sorter: (a, b) => a.lastName.localeCompare(b.lastName),
     },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
+    { title: "Email", dataIndex: "email", key: "email" },
+    { title: "Student ID", dataIndex: "studentId", key: "studentId" },
+    { title: "Grade", dataIndex: "grade", key: "grade",
+      filters: ["Grade 6","Grade 7","Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","Grade 13"].map((g) => ({ text: g, value: g })),
+      onFilter: (value, record) => record.grade === value,
     },
+    { title: "Phone", dataIndex: "telephoneNumber", key: "telephoneNumber" },
     {
-      title: "StudentID",
-      dataIndex: "studentId",
-      key: "studentId",
-    },
-    {
-      title: "Grade",
-      dataIndex: "grade",
-      key: "grade",
-    },
-    {
-      title: "Telephone Number",
-      dataIndex: "telephoneNumber",
-      key: "telephoneNumber",
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: "Membership",
+      dataIndex: "membership",
+      key: "membership",
       filters: [
         { text: "Active", value: "active" },
         { text: "Pending", value: "pending" },
         { text: "Expired", value: "expired" },
       ],
-      onFilter: (value, record) => record.status === value,
-      render: (_,record) => (
-        <Tag
-          color={record.membership.status === "active" ? "green" : "gold"}
-          className="flex items-center gap-2"
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              record.membership.status === "active" ? "bg-green-500" : "bg-yellow-500"
-            }`}
-          />
-          {record.membership.status?.replace(/^./, (char) => char.toUpperCase())}
-        </Tag>
-      ),
+      onFilter: (value, record) => record.membership?.status === value,
+      render: (membership) => {
+        const status = membership?.status || "pending";
+        const colors = { active: "green", pending: "gold", expired: "red" };
+        return (
+          <Tag color={colors[status] || "default"}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Tag>
+        );
+      },
     },
     {
       title: "Action",
-      render: (record) => (
-        <div className="flex gap-2">
-          <Button
-            type="primary"
-            danger
-            size="large"
-            onClick={() => handleDeleteClick(record)}
-          >
-            <DeleteOutlined />
-          </Button>
-        </div>
+      render: (_, record) => (
+        <Button type="primary" danger size="small" onClick={() => handleDeleteClick(record)}>
+          <DeleteOutlined /> Delete
+        </Button>
       ),
     },
   ];
 
   return (
-    <div className="p-10 bg-white shadow-md rounded-md">
-      <h2 className="text-xl font-semibold mb-4">User Management</h2>
+    <div className="p-6 bg-white shadow-md rounded-md">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h2 className="text-xl font-semibold">Student Management</h2>
+        <Button icon={<DownloadOutlined />} onClick={() => exportUsersCSV(filteredData)}>
+          Export CSV
+        </Button>
+      </div>
       <Search
-        placeholder="Search by email"
+        placeholder="Search by name, email or student ID"
         enterButton
         allowClear
         onSearch={handleSearch}
-        className="mb-4 w-1/2"
+        className="mb-4 w-full md:w-1/2"
       />
       {loader ? (
-        <center className="mt-32">
-          <Spin size="large" />
-        </center>
+        <center className="mt-20"><Spin size="large" /></center>
       ) : (
         <Table
           columns={columns}
           dataSource={filteredData}
-          rowKey="id"
+          rowKey="_id"
           bordered
-          pagination={{ pageSize: 10 }}
+          pagination={{ pageSize: 10, showSizeChanger: true }}
+          scroll={{ x: "max-content" }}
         />
       )}
-      {/* Confirmation Modal */}
       <CustomModal
         visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => { setModalVisible(false); setSelectedUser(null); }}
         onConfirm={confirmDelete}
         confirmLoading={loading}
         title="Confirm Deletion"
-        content={`Are you sure you want to delete ${selectedUser?.firstName} ${selectedUser?.lastName}?`}
+        content={`Are you sure you want to delete ${selectedUser?.firstName} ${selectedUser?.lastName}? This cannot be undone.`}
       />
     </div>
   );

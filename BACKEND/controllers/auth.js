@@ -4,10 +4,9 @@ const crypto = require("crypto");
 
 const resetPasswordTemplate = require("../utils/emailTemplates/resetPasswordTemplate");
 
-// 🔹 **Register Student**
+// Register Student
 exports.register = async (req, res) => {
-  const { firstName, lastName, email, password, grade, telephoneNumber } =
-    req.body;
+  const { firstName, lastName, email, password, grade, telephoneNumber } = req.body;
 
   try {
     const user = await User.create({
@@ -19,23 +18,21 @@ exports.register = async (req, res) => {
       telephoneNumber,
     });
 
-    // Send Welcome Email
     const message = `
-      <h1>Welcome to Devians - LMS Platform 🎉</h1>
+      <h1>Welcome to Devians LMS 🎉</h1>
       <p>Hello ${firstName} ${lastName},</p>
-      <p>Your account has been successfully created!</p>
-      <p>Now you can login to our online learning platform.</p>
-      <p>Email: ${email}</p>
-      <p>Telephone Number: ${telephoneNumber}</p>
-      <p>Grade: ${grade}</p>
-      <p>Thank you for joining with us!</p>
+      <p>Your account has been successfully created! You can now log in to our online learning platform.</p>
+      <p><strong>Student ID:</strong> ${user.studentId}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Grade:</strong> ${grade}</p>
+      <p>Thank you for joining us!</p>
       <br>
-      <strong>Devians Team</strong>
+      <strong>Devians LMS Team</strong>
     `;
 
     await sendEmail({
       to: user.email,
-      subject: "Welcome to Devians - LMS Platform",
+      subject: "Welcome to Devians LMS",
       html: message,
     });
 
@@ -45,9 +42,9 @@ exports.register = async (req, res) => {
   }
 };
 
-// 🔹 **Register Admin/Teacher**
+// Register Admin/Teacher
 exports.registerStaff = async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role, grade, telephoneNumber } = req.body;
 
   try {
     if (!["admin", "teacher"].includes(role)) {
@@ -60,31 +57,22 @@ exports.registerStaff = async (req, res) => {
       email,
       password,
       role,
+      grade: grade || "N/A",
+      telephoneNumber: telephoneNumber || "0000000000",
     });
 
     sendToken(user, 201, res);
   } catch (error) {
-    if (error.code === 11000) {
-      const message = "Already have an account using this email";
-      return res.status(400).json({ success: false, error: message });
-    }
-
-    if (error.name === "ValidationError") {
-      const message = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ success: false, error: message });
-    }
     handleError(error, res);
   }
 };
 
-// 🔹 **Login User**
+// Login User
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Please enter email and password" });
+    return res.status(400).json({ success: false, message: "Please enter email and password" });
   }
 
   try {
@@ -99,9 +87,7 @@ exports.login = async (req, res) => {
 
     const isMatch = await user.matchPasswords(password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
     sendToken(user, 200, res);
@@ -110,49 +96,41 @@ exports.login = async (req, res) => {
   }
 };
 
-// 🔹 **Forgot Password**
+// Forgot Password
 exports.forgotpassword = async (req, res, next) => {
   const { email } = req.body;
-  let user;
 
   try {
-    user = await User.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Email not found" });
+      return res.status(404).json({ success: false, message: "Email not found" });
     }
 
     const resetToken = user.getResetPasswordToken();
     await user.save();
 
     const resetURL = `${process.env.CLIENT_URL}/passwordreset/${resetToken}`;
-
-    // Use external email template
     const emailTemplate = resetPasswordTemplate(resetURL);
+
     try {
       await sendEmail({
         to: user.email,
-        subject: "Password Reset Request",
+        subject: "Password Reset Request - Devians LMS",
         html: emailTemplate,
       });
-
       res.status(200).json({ success: true, message: "Reset email sent" });
     } catch (error) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
-
-      res
-        .status(500)
-        .json({ success: false, message: "Email could not be sent" });
+      res.status(500).json({ success: false, message: "Email could not be sent" });
     }
   } catch (error) {
     next(error);
   }
 };
 
-// 🔹 **Reset Password**
+// Reset Password
 exports.resetpassword = async (req, res) => {
   const resetPasswordToken = crypto
     .createHash("sha256")
@@ -166,9 +144,7 @@ exports.resetpassword = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired reset token" });
+      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
     }
 
     user.password = req.body.password;
@@ -176,98 +152,76 @@ exports.resetpassword = async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Password reset successful" });
+    res.status(200).json({ success: true, message: "Password reset successful" });
   } catch (error) {
     handleError(error, res);
   }
 };
 
-// 🔹 **Get All Users**
+// Get All Users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// 🔹 **Get Profile**
+// Get Profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
     res.json(user);
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// 🔹 **Edit User**
+// Edit User
 exports.editUser = async (req, res) => {
-  const { firstName, lastName, email, grade, telephoneNumber } = req.body;
+  const { firstName, lastName, email, grade, telephoneNumber, profilePhoto } = req.body;
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { firstName, lastName, email, grade, telephoneNumber },
-      { new: true }
+      { firstName, lastName, email, grade, telephoneNumber, ...(profilePhoto !== undefined && { profilePhoto }) },
+      { new: true, runValidators: true }
     );
 
-    if (!updatedUser)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+    if (!updatedUser) return res.status(404).json({ success: false, message: "User not found" });
 
     res.json({ success: true, updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    handleError(error, res);
   }
 };
 
-// 🔹 **Delete User**
+// Delete User
 exports.deleteUser = async (req, res) => {
   try {
-    // Step 1: Retrieve user before deletion
     const user = await User.findById(req.params.id);
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    // Store email for notification before deleting
     const userEmail = user.email;
     const userName = `${user.firstName} ${user.lastName}`;
 
-    // Step 2: Delete the user
     await User.findByIdAndDelete(req.params.id);
 
-    // Step 3: Send account deletion email
     const message = `
-       <h1>Account Deleted - LMS Platform ✅</h1>
-       <p>Hello ${userName},</p>
-       <p>Your account has been successfully deleted!</p>
-       <p>You will need to register again to access our online learning platform.</p>
-       <p>Thank you for being with us!</p>
-       <br>
-       <strong>Devians Team</strong>
-     `;
+      <h1>Account Deleted ✅</h1>
+      <p>Hello ${userName},</p>
+      <p>Your account has been successfully deleted. You will need to register again to access our platform.</p>
+      <p>Thank you for being with us!</p>
+      <br>
+      <strong>Devians LMS Team</strong>
+    `;
 
     try {
-      await sendEmail({
-        to: userEmail,
-        subject: "Your Account Has Been Deleted",
-        html: message,
-      });
+      await sendEmail({ to: userEmail, subject: "Your Account Has Been Deleted - Devians LMS", html: message });
     } catch (emailError) {
-      console.error("Error sending email:", emailError);
+      console.error("Error sending deletion email:", emailError);
     }
 
     res.json({ success: true, message: "User deleted successfully" });
@@ -276,7 +230,20 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// 🔹 **Send Token**
+// Approve / Unapprove user
+exports.toggleApproval = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    user.isApproved = !user.isApproved;
+    await user.save();
+    res.json({ success: true, isApproved: user.isApproved });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Send Token Helper
 const sendToken = (user, statusCode, res) => {
   const token = user.getSignedToken();
   res.status(statusCode).json({
@@ -290,27 +257,24 @@ const sendToken = (user, statusCode, res) => {
       role: user.role,
       grade: user.grade,
       telephoneNumber: user.telephoneNumber,
-      studentId: user.studentId, // Ensure it's included
+      studentId: user.studentId,
       membership: user.membership,
-      isApproved: user.isApproved, // Ensure it's included
+      isApproved: user.isApproved,
+      profilePhoto: user.profilePhoto,
     },
   });
 };
 
-// 🔹 **Error Handling**
+// Error Handler
 const handleError = (error, res) => {
   if (error.code === 11000) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email already exists" });
+    return res.status(400).json({ success: false, message: "Email already exists" });
   }
-
   if (error.name === "ValidationError") {
     return res.status(400).json({
       success: false,
       message: Object.values(error.errors).map((val) => val.message),
     });
   }
-
   res.status(500).json({ success: false, message: "Internal server error" });
 };
