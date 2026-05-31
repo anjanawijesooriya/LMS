@@ -12,6 +12,7 @@ export const fetchFeaturedCourses = () => async (dispatch) => {
   dispatch(fetchFeaturedCoursesStart());
   try {
     const response = await axios.get("/courses/");
+    console.log(response.data);
     dispatch(fetchFeaturedCoursesSuccess(response.data));
   } catch (error) {
     dispatch(fetchFeaturedCoursesFailure(error.message));

@@ -12,6 +12,7 @@ export const fetchPayments = () => async (dispatch) => {
   dispatch(fetchPaymentsStart());
   try {
     const response = await axios.get("/payments/");
+    console.log(response.data);
     if (response.data) {
       dispatch(fetchPaymentsSuccess(response.data));
     } else {

@@ -13,11 +13,7 @@ import {
   notification,
   Upload,
 } from "antd";
-import {
-  CloseOutlined,
-  MenuOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined, MenuOutlined, UploadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -30,7 +26,9 @@ const { Option } = Select;
 const Enroll = () => {
   const [loader, setLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark",
+  );
   const [loading, setLoading] = useState(false);
   const [slipFile, setSlipFile] = useState(null);
   const [uploadingSlip, setUploadingSlip] = useState(false);
@@ -83,7 +81,9 @@ const Enroll = () => {
         notification.success({ message: "Slip uploaded successfully" });
       }
     } catch (error) {
-      notification.error({ message: "Failed to upload slip. Please try again." });
+      notification.error({
+        message: "Failed to upload slip. Please try again.",
+      });
     } finally {
       setUploadingSlip(false);
     }
@@ -112,7 +112,8 @@ const Enroll = () => {
       if (response.success) {
         notification.success({
           message: "Payment Submitted",
-          description: "Your payment details have been submitted. Awaiting admin approval.",
+          description:
+            "Your payment details have been submitted. Awaiting admin approval.",
           placement: "topRight",
         });
         form.resetFields(["amount", "month", "remarks"]);
@@ -134,10 +135,20 @@ const Enroll = () => {
 
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <Button type="default" block className="mt-4 mb-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>
+      <Button
+        type="default"
+        block
+        className="mt-4 mb-2"
+        onClick={() => history(`/user-profile/${user?.firstName}`)}
+      >
         Profile
       </Button>
-      <Button type="default" block className="mb-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>
+      <Button
+        type="default"
+        block
+        className="mb-2"
+        onClick={() => history(`/user-payments/${user?.firstName}`)}
+      >
         Payments
       </Button>
       <Button type="default" block onClick={logoutHandler}>
@@ -154,7 +165,12 @@ const Enroll = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">LMS Platform - Devians (ඩේවියන්ස්) 🏛️</h1>
+        <h1
+          className="text-xl font-bold cursor-pointer"
+          onClick={() => history(`/user-dashboard/${user?.firstName}`)}
+        >
+          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
+        </h1>
         <div className="hidden md:flex gap-4">
           <Button
             type={user?.membership?.status === "active" ? "default" : "primary"}
@@ -167,17 +183,24 @@ const Enroll = () => {
           >
             {user?.membership?.status === "active" ? "Classes" : "Enroll"}
           </Button>
-          <Dropdown overlay={profileMenu} trigger={["click"]} placement="bottomRight">
+          <Dropdown
+            overlay={profileMenu}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
             <div className="relative cursor-pointer">
               <Avatar
                 className="bg-blue-500"
                 size={40}
                 src={user?.profilePhoto || undefined}
               >
-                {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                {!user?.profilePhoto &&
+                  user?.firstName?.charAt(0).toUpperCase()}
               </Avatar>
               {user?.membership?.status && (
-                <span className={`absolute top-0 right-0 text-sm ${user?.membership?.status === "active" ? "text-green-500" : "text-yellow-500"}`}>
+                <span
+                  className={`absolute top-0 right-0 text-sm ${user?.membership?.status === "active" ? "text-green-500" : "text-yellow-500"}`}
+                >
                   {user?.membership?.status === "active" ? "✅" : "⏳"}
                 </span>
               )}
@@ -194,22 +217,52 @@ const Enroll = () => {
       {menuOpen && (
         <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
           {user?.membership?.status === "active" ? (
-            <Button type="default" onClick={() => history(`/user-classes/${user?.firstName}`)}>Classes</Button>
+            <Button
+              type="default"
+              onClick={() => history(`/user-classes/${user?.firstName}`)}
+            >
+              Classes
+            </Button>
           ) : (
-            <Button type="primary" onClick={() => history(`/user-enroll/${user?.firstName}`)}>Enroll</Button>
+            <Button
+              type="primary"
+              onClick={() => history(`/user-enroll/${user?.firstName}`)}
+            >
+              Enroll
+            </Button>
           )}
-          <Button type="default" onClick={() => history(`/user-profile/${user?.firstName}`)}>Profile</Button>
-          <Button type="default" onClick={() => history(`/user-payments/${user?.firstName}`)}>Payments</Button>
-          <Button type="default" onClick={logoutHandler}>Logout</Button>
-          <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+          <Button
+            type="default"
+            onClick={() => history(`/user-profile/${user?.firstName}`)}
+          >
+            Profile
+          </Button>
+          <Button
+            type="default"
+            onClick={() => history(`/user-payments/${user?.firstName}`)}
+          >
+            Payments
+          </Button>
+          <Button type="default" onClick={logoutHandler}>
+            Logout
+          </Button>
+          <Switch
+            checked={darkMode}
+            onChange={() => setDarkMode(!darkMode)}
+            checkedChildren="🌙"
+            unCheckedChildren="☀️"
+          />
         </div>
       )}
 
       <div className="min-h-screen flex items-center justify-center p-4 mt-10 dark:text-white">
         <Card className="w-full max-w-lg shadow-lg p-6 bg-white rounded-lg mt-6">
-          <h2 className="text-2xl font-semibold text-center mb-2">Submit Payment</h2>
+          <h2 className="text-2xl font-semibold text-center mb-2">
+            Submit Payment
+          </h2>
           <p className="text-center text-gray-500 text-sm mb-6">
-            Fill in your payment details below. An admin will review and approve your membership.
+            Fill in your payment details below. An admin will review and approve
+            your membership.
           </p>
           <Form layout="vertical" form={form}>
             <Form.Item label="First Name" name="firstName">
@@ -234,18 +287,38 @@ const Enroll = () => {
               rules={[{ required: true, message: "Please select a month" }]}
             >
               <Select placeholder="Select Month">
-                {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m) => (
-                  <Option key={m} value={m}>{m}</Option>
+                {[
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ].map((m) => (
+                  <Option key={m} value={m}>
+                    {m}
+                  </Option>
                 ))}
               </Select>
             </Form.Item>
             <Form.Item label="Remarks (optional)" name="remarks">
-              <Input.TextArea placeholder="Any notes for the admin..." rows={2} />
+              <Input.TextArea
+                placeholder="Any notes for the admin..."
+                rows={2}
+              />
             </Form.Item>
             <Form.Item label="Payment Slip (optional)">
               <Upload
                 beforeUpload={handleSlipUpload}
-                showUploadList={slipFile ? [{ name: slipFile.name, status: "done" }] : false}
+                showUploadList={
+                  slipFile ? [{ name: slipFile.name, status: "done" }] : false
+                }
                 maxCount={1}
                 accept="image/*"
               >
@@ -254,7 +327,9 @@ const Enroll = () => {
                 </Button>
               </Upload>
               {slipUrl && (
-                <p className="text-green-600 text-xs mt-1">✅ Slip uploaded successfully</p>
+                <p className="text-green-600 text-xs mt-1">
+                  ✅ Slip uploaded successfully
+                </p>
               )}
             </Form.Item>
             <Button
@@ -272,10 +347,34 @@ const Enroll = () => {
 
       <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div><h4 className="font-bold text-lg">About</h4><p className="text-sm mt-2">An innovative learning platform for students worldwide.</p></div>
-          <div><h4 className="font-bold text-lg">Quick Links</h4><ul className="text-sm mt-2"><li>Courses</li><li>Pricing</li><li>Blog</li><li>Help Center</li></ul></div>
-          <div><h4 className="font-bold text-lg">Contact</h4><p className="text-sm mt-2">Email: support@lms.com</p><p className="text-sm">Phone: +123 456 7890</p></div>
-          <div><h4 className="font-bold text-lg">©️ Copyrights - All rights reserved</h4><h6 className="font-bold text-lg sm:py-4">2025 Devians LMS Platform 🏛️</h6></div>
+          <div>
+            <h4 className="font-bold text-lg">About</h4>
+            <p className="text-sm mt-2">
+              An innovative learning platform for students worldwide.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-lg">Quick Links</h4>
+            <ul className="text-sm mt-2">
+              <li>Courses</li>
+              <li>Pricing</li>
+              <li>Blog</li>
+              <li>Help Center</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-lg">Contact</h4>
+            <p className="text-sm mt-2">Email: support@lms.com</p>
+            <p className="text-sm">Phone: +123 456 7890</p>
+          </div>
+          <div>
+            <h4 className="font-bold text-lg">
+              ©️ Copyrights - All rights reserved
+            </h4>
+            <h6 className="font-bold text-lg sm:py-4">
+              2025 Devians LMS Platform 🏛️
+            </h6>
+          </div>
         </div>
       </footer>
     </div>

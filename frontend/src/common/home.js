@@ -55,7 +55,7 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Navbar */}
       <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold" onClick={() => history("/")}>
           LMS Platform - Devians (ඩේවියන්ස්) 🏛️
         </h1>
         {/* Desktop Menu */}

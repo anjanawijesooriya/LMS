@@ -13,7 +13,7 @@ const Payments = () => {
   const [loader, setLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
+    localStorage.getItem("theme") === "dark",
   );
   const [filteredData, setFilteredData] = useState([]);
   const history = useNavigate();
@@ -26,6 +26,8 @@ const Payments = () => {
   } = useSelector(selectAuthState);
 
   const { payments } = useSelector(selectPayments);
+
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const timer = setTimeout(() => setLoader(false), 1500);
@@ -63,7 +65,7 @@ const Payments = () => {
 
     // Filter the payments array by comparing studentId
     const filtered = payments?.filter(
-      (payment) => payment.studentId === user.studentId
+      (payment) => payment.studentId === user.studentId,
     );
 
     // Set the filtered data to the state
@@ -72,8 +74,7 @@ const Payments = () => {
 
   const profileMenu = (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <div className="relative flex justify-center">
-      </div>
+      <div className="relative flex justify-center"></div>
       <Button
         type="default"
         block
@@ -181,7 +182,10 @@ const Payments = () => {
       <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         {/* Navbar */}
         <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-          <h1 className="text-xl font-bold">
+          <h1
+            className="text-xl font-bold cursor-pointer"
+            onClick={() => history(`/user-dashboard/${user?.firstName}`)}
+          >
             LMS Platform - Devians (ඩේවියන්ස්) 🏛️
           </h1>
           {/* Desktop Menu */}
@@ -316,7 +320,7 @@ const Payments = () => {
                 ©️ Copyrights - All rights reserved
               </h4>
               <h6 className="font-bold text-lg sm:py-4">
-                2025 Devians LMS Platform 🏛️
+                {currentYear} Devians LMS Platform 🏛️
               </h6>
             </div>
           </div>

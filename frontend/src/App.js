@@ -15,7 +15,7 @@ import PageNotFound from "./components/routes/Pagenotfound";
 import Login from "./components/Login Register/Login";
 import Register from "./components/Login Register/Register";
 import ResetPassword from "./components/Login Register/ResetPassword";
-import Home from "./common/Home";
+import Home from "./common/home";
 import FeaturedCourseDetails from "./common/FeaturedCourseDetails";
 import UserHome from "./components/User/userHome";
 import Enroll from "./components/User/Enroll";
