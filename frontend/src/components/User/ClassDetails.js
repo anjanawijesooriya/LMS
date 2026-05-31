@@ -25,7 +25,7 @@ const getClassStatus = (classDate, classTime, isCancelled) => {
   const now = moment();
   const diffMins = classDateTime.diff(now, "minutes");
   if (diffMins > 15) return { label: "Upcoming", color: "processing" };
-  if (diffMins >= -60 && diffMins <= 15) return { label: "Live Now 🔴", color: "success" };
+  if (diffMins >= -90 && diffMins <= 15) return { label: "Live Now 🔴", color: "success" };
   return { label: "Ended", color: "default" };
 };
 
@@ -37,7 +37,7 @@ const canJoinClass = (classDate, classTime, isCancelled) => {
   );
   const now = moment();
   const diffMins = classDateTime.diff(now, "minutes");
-  return diffMins <= 15 && diffMins >= -60;
+  return diffMins <= 15 && diffMins >= -90;
 };
 
 const ClassDetails = () => {
