@@ -7,9 +7,10 @@ import {
   Spin,
   Card,
   Statistic,
-  Carousel,
   List,
   Avatar,
+  Tag,
+  Badge,
 } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -20,11 +21,15 @@ import {
   MenuFoldOutlined,
   LogoutOutlined,
   AppstoreOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import Users from "./Users/Users";
 import Classes from "./Online-Classes/Classes";
 import Payments from "./Payments/Payments";
 import axios from "axios";
+import moment from "moment";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser } from "../../redux/features/auth/authActions";
@@ -41,72 +46,64 @@ const Dashboard = () => {
   const [payData, setPayData] = useState([]);
 
   const dispatch = useDispatch();
-  const {
-    isAuthenticated,
-    user,
-    loading: authLoading,
-    error: authError,
-  } = useSelector(selectAuthState);
+  const { user } = useSelector(selectAuthState);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoader(false);
-    }, 3000);
+    const timer = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const res = await axios.get("/api/auth/get");
-      const students = res.data.filter((user) => user.role === "student");
-      setStdData(students);
-
-      const cls = await axios.get("/classes/");
-      setClsData(cls.data);
-
-      const payment = await axios.get("/payments/");
-      setPayData(payment.data);
+      const [usersRes, clsRes, payRes] = await Promise.all([
+        axios.get("/api/auth/get"),
+        axios.get("/classes/"),
+        axios.get("/payments/"),
+      ]);
+      setStdData(usersRes.data.filter((u) => u.role === "student"));
+      setClsData(clsRes.data);
+      setPayData(payRes.data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching dashboard data:", error);
     }
   };
 
   const queryParams = new URLSearchParams(location.search);
-  const selectedTab = queryParams.get("tab") || "overview"; // Default to 'overview'
+  const selectedTab = queryParams.get("tab") || "overview";
 
-  const handleMenuClick = (key) => {
-    navigate(`?tab=${key}`);
-  };
+  const handleMenuClick = (key) => navigate(`?tab=${key}`);
 
   const logoutHandler = () => {
     dispatch(logoutUser());
     navigate("/login");
   };
 
-  const usersCount = stdData.length;
-  const clsCount = clsData.length;
-  const revenue = payData.reduce((sum, payment) => {
-    return payment.status === "approved" ? sum + payment.amount : sum;
-  }, 0);
+  // Analytics
+  const totalStudents = stdData.length;
+  const activeMembers = stdData.filter((s) => s.membership?.status === "active").length;
+  const pendingPayments = payData.filter((p) => p.status === "pending").length;
+  const totalRevenue = payData
+    .filter((p) => p.status === "approved")
+    .reduce((sum, p) => sum + p.amount, 0);
 
-  // Simulated Data for Summaries
-  const summaryData = {
-    users: usersCount,
-    classes: clsCount,
-    payments: revenue,
-  };
+  const currentMonth = moment().format("MMMM");
+  const currentYear = moment().year();
+  const monthlyRevenue = payData
+    .filter((p) => p.status === "approved" && p.month === currentMonth && p.year === currentYear)
+    .reduce((sum, p) => sum + p.amount, 0);
 
-  // Get Upcoming Classes closer to today's date
   const today = new Date();
   const upcomingClasses = clsData
-    .filter((cls) => new Date(cls.classDate) > today)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 4);
+    .filter((cls) => new Date(cls.classDate) > today && !cls.isCancelled)
+    .sort((a, b) => new Date(a.classDate) - new Date(b.classDate))
+    .slice(0, 5);
 
-  // Render Content Based on Query Param
+  const recentPayments = payData
+    .filter((p) => p.status === "pending")
+    .slice(0, 5);
+
   const renderContent = () => {
     switch (selectedTab) {
       case "users":
@@ -118,76 +115,123 @@ const Dashboard = () => {
       case "overview":
       default:
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Summary Cards */}
-            <Card>
-              <Statistic
-                title="Total Users"
-                value={summaryData.users}
-                prefix={<UserOutlined />}
-              />
-            </Card>
-            <Card>
-              <Statistic
-                title="Total Classes"
-                value={summaryData.classes}
-                prefix={<BookOutlined />}
-              />
-            </Card>
-            <Card>
-              <Statistic
-                title="Total Revenue"
-                value={`Rs.${summaryData.payments}`}
-                prefix={<DollarOutlined />}
-              />
-            </Card>
-
-            {/* Recent Activities */}
-            <div className="md:col-span-2">
-              <h3 className="text-lg font-bold mb-4">UpComing Classes</h3>
-              <List
-                itemLayout="horizontal"
-                dataSource={upcomingClasses}
-                renderItem={(item) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<BookOutlined />} />}
-                      title={
-                        <span className="font-semibold">{item.className}</span>
-                      }
-                      description={`${new Date(
-                        item.classDate
-                      ).toLocaleDateString()} at ${item.classTime}`}
-                    />
-                  </List.Item>
-                )}
-              />
+          <div className="space-y-6">
+            {/* Stats Row 1 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <Statistic
+                  title="Total Students"
+                  value={totalStudents}
+                  prefix={<TeamOutlined className="text-blue-500" />}
+                />
+              </Card>
+              <Card>
+                <Statistic
+                  title="Active Memberships"
+                  value={activeMembers}
+                  prefix={<CheckCircleOutlined className="text-green-500" />}
+                  valueStyle={{ color: "#22c55e" }}
+                />
+              </Card>
+              <Card>
+                <Statistic
+                  title="Pending Payments"
+                  value={pendingPayments}
+                  prefix={<ClockCircleOutlined className="text-yellow-500" />}
+                  valueStyle={{ color: pendingPayments > 0 ? "#f59e0b" : undefined }}
+                />
+              </Card>
+              <Card>
+                <Statistic
+                  title="Total Classes"
+                  value={clsData.length}
+                  prefix={<BookOutlined className="text-purple-500" />}
+                />
+              </Card>
             </div>
 
-            {/* Image Slider (Optional) */}
-            <Carousel autoplay className="md:col-span-3">
-              <div>
-                <img
-                  src="https://images.unsplash.com/photo-1518082593638-b6e73b35d39a?q=80&w=2068&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Slide 1"
-                  className="rounded-md shadow-lg w-full"
+            {/* Stats Row 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <Statistic
+                  title="Total Revenue"
+                  value={`Rs.${totalRevenue.toLocaleString()}`}
+                  prefix={<DollarOutlined className="text-blue-600" />}
                 />
-              </div>
-              <div>
-                <img
-                  src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Slide 2"
-                  className="rounded-md shadow-lg w-full"
+              </Card>
+              <Card>
+                <Statistic
+                  title={`Revenue — ${currentMonth} ${currentYear}`}
+                  value={`Rs.${monthlyRevenue.toLocaleString()}`}
+                  prefix={<DollarOutlined className="text-emerald-600" />}
+                  valueStyle={{ color: "#059669" }}
                 />
-              </div>
-              <div>
-                <img
-                  src="https://images.unsplash.com/photo-1565022536102-f7645c84354a?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Slide 3"
-                  className="rounded-md shadow-lg w-full"
+              </Card>
+              <Card>
+                <Statistic
+                  title="Upcoming Classes"
+                  value={upcomingClasses.length}
+                  prefix={<BookOutlined className="text-indigo-500" />}
                 />
-              </div>
-            </Carousel>
+              </Card>
+            </div>
+
+            {/* Tables Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Upcoming Classes */}
+              <Card title="Upcoming Classes" className="shadow-sm">
+                <List
+                  itemLayout="horizontal"
+                  dataSource={upcomingClasses}
+                  locale={{ emptyText: "No upcoming classes" }}
+                  renderItem={(item) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<BookOutlined />} style={{ backgroundColor: "#6366f1" }} />}
+                        title={<span className="font-semibold">{item.className}</span>}
+                        description={
+                          <span>
+                            {moment(item.classDate).format("DD MMM YYYY")} at {moment(item.classTime, "HH:mm").format("hh:mm A")}
+                            {" — "}<Tag color="blue">{item.classGrade}</Tag>
+                          </span>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Card>
+
+              {/* Pending Payments */}
+              <Card
+                title={
+                  <span>
+                    Pending Payments{" "}
+                    {pendingPayments > 0 && <Badge count={pendingPayments} style={{ backgroundColor: "#f59e0b" }} />}
+                  </span>
+                }
+                className="shadow-sm"
+                extra={
+                  <Button size="small" onClick={() => handleMenuClick("payments")}>
+                    View All
+                  </Button>
+                }
+              >
+                <List
+                  itemLayout="horizontal"
+                  dataSource={recentPayments}
+                  locale={{ emptyText: "No pending payments" }}
+                  renderItem={(item) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: "#f59e0b" }} />}
+                        title={<span>{item.firstName} {item.lastName} <span className="text-gray-400 text-xs">({item.studentId})</span></span>}
+                        description={`${item.month} ${item.year} — Rs.${item.amount}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            </div>
           </div>
         );
     }
@@ -199,41 +243,27 @@ const Dashboard = () => {
     </center>
   ) : (
     <Layout className="min-h-screen">
-      {/* Sidebar */}
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        className="bg-gray-900"
-      >
-        <div className="p-4 text-white text-lg text-center font-bold">
-          Admin Panel
+      <Sider trigger={null} collapsible collapsed={collapsed} className="bg-gray-900">
+        <div className="p-4 text-white text-center font-bold">
+          {collapsed ? "A" : "Admin Panel"}
         </div>
         <Menu theme="dark" mode="inline" selectedKeys={[selectedTab]}>
-          <Menu.Item
-            key="overview"
-            icon={<AppstoreOutlined />}
-            onClick={() => handleMenuClick("overview")}
-          >
+          <Menu.Item key="overview" icon={<AppstoreOutlined />} onClick={() => handleMenuClick("overview")}>
             Overview
           </Menu.Item>
-          <Menu.Item
-            key="users"
-            icon={<UserOutlined />}
-            onClick={() => handleMenuClick("users")}
-          >
+          <Menu.Item key="users" icon={<UserOutlined />} onClick={() => handleMenuClick("users")}>
             Users
           </Menu.Item>
-          <Menu.Item
-            key="classes"
-            icon={<BookOutlined />}
-            onClick={() => handleMenuClick("classes")}
-          >
+          <Menu.Item key="classes" icon={<BookOutlined />} onClick={() => handleMenuClick("classes")}>
             Classes
           </Menu.Item>
           <Menu.Item
             key="payments"
-            icon={<DollarOutlined />}
+            icon={
+              <Badge count={pendingPayments} size="small" offset={[8, 0]}>
+                <DollarOutlined />
+              </Badge>
+            }
             onClick={() => handleMenuClick("payments")}
           >
             Payments
@@ -242,24 +272,21 @@ const Dashboard = () => {
       </Sider>
 
       <Layout>
-        {/* Header */}
         <Header className="bg-white shadow-md flex items-center justify-between px-4">
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
           />
-          <Button
-            type="primary"
-            icon={<LogoutOutlined />}
-            onClick={logoutHandler}
-          >
+          <span className="font-semibold text-gray-600">
+            Welcome, {user?.firstName}
+          </span>
+          <Button type="primary" icon={<LogoutOutlined />} onClick={logoutHandler}>
             Logout
           </Button>
         </Header>
 
-        {/* Main Content */}
-        <Content className="m-4 p-4 bg-white shadow-md rounded-lg">
+        <Content className="m-4 p-4 bg-gray-50 rounded-lg">
           {renderContent()}
         </Content>
       </Layout>

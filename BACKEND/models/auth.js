@@ -3,11 +3,13 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
+const Counter = require("./counter");
+
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
-    studentId: { type: String, unique: true, sparse: true }, // Only for students
+    studentId: { type: String, unique: true, sparse: true },
 
     firstName: {
       type: String,
@@ -47,7 +49,9 @@ const UserSchema = new Schema(
       default: "student",
     },
 
-    isApproved: { type: Boolean, default: false }, // Only for students
+    isApproved: { type: Boolean, default: true },
+
+    profilePhoto: { type: String, default: null },
 
     membership: {
       status: {
@@ -56,33 +60,28 @@ const UserSchema = new Schema(
         default: "pending",
       },
       expiryDate: { type: Date, default: null },
+      expiryNotified: { type: Boolean, default: false },
       paidMonths: [
         {
-          month: {
-            type: String,
-          },
+          month: { type: String },
         },
-      ], // Stores the paid months with year
+      ],
     },
   },
   { timestamps: true }
 );
 
-// 🔹 **Before saving a new user**
+// Atomic Student ID generation using a counter collection
 UserSchema.pre("save", async function (next) {
-  // 🔹 Generate a unique Student ID **only for students**
   if (this.role === "student" && !this.studentId) {
-    const lastUser = await mongoose
-      .model("User")
-      .findOne({ role: "student" })
-      .sort({ createdAt: -1 });
-    const lastIdNumber = lastUser
-      ? parseInt(lastUser.studentId.substring(4))
-      : 0;
-    this.studentId = `STD${String(lastIdNumber + 1).padStart(4, "0")}`;
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "studentId" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    this.studentId = `STD${String(counter.seq).padStart(4, "0")}`;
   }
 
-  // 🔹 Hash password only if modified
   if (this.isModified("password")) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -91,19 +90,16 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-// 🔹 **Compare entered password with stored hashed password**
 UserSchema.methods.matchPasswords = function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
-// 🔹 **Generate JWT token**
 UserSchema.methods.getSignedToken = function () {
   return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+    expiresIn: process.env.JWT_EXPIRE || "7d",
   });
 };
 
-// 🔹 **Generate reset password token**
 UserSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
@@ -111,7 +107,7 @@ UserSchema.methods.getResetPasswordToken = function () {
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Token expires in 10 minutes
+  this.resetPasswordExpire = Date.now() + 10 * (60 * 1000);
 
   return resetToken;
 };

@@ -28,10 +28,9 @@ const Payments = () => {
   const { payments } = useSelector(selectPayments);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoader(false);
-    }, 3000);
-  });
+    const timer = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -138,7 +137,12 @@ const Payments = () => {
       onFilter: (value, record) => record.month === value,
     },
     {
-      title: "Amount",
+      title: "Year",
+      dataIndex: "year",
+      key: "year",
+    },
+    {
+      title: "Amount (Rs.)",
       dataIndex: "amount",
       key: "amount",
     },
@@ -154,21 +158,17 @@ const Payments = () => {
       filters: [
         { text: "Approved", value: "approved" },
         { text: "Pending", value: "pending" },
+        { text: "Rejected", value: "rejected" },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (_, record) => (
-        <Tag
-          color={record.status === "approved" ? "green" : "gold"}
-          className="flex items-center gap-2"
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              record.status === "approved" ? "bg-green-500" : "bg-yellow-500"
-            }`}
-          />
-          {record.status?.replace(/^./, (char) => char.toUpperCase())}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const colors = { approved: "green", pending: "gold", rejected: "red" };
+        return (
+          <Tag color={colors[record.status] || "default"}>
+            {record.status?.charAt(0).toUpperCase() + record.status?.slice(1)}
+          </Tag>
+        );
+      },
     },
   ];
 
