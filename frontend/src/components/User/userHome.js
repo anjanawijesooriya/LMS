@@ -33,6 +33,8 @@ const UserHome = () => {
   const { user } = useSelector(selectAuthState);
   const { featuredCourses } = useSelector(selectFeaturedCourses);
 
+  const year = new Date().getFullYear();
+
   useEffect(() => {
     const t = setTimeout(() => setLoader(false), 1500);
     return () => clearTimeout(t);
@@ -393,7 +395,7 @@ const UserHome = () => {
           </div>
           <div>
             <h4 className="font-poppins font-semibold text-white mb-4">Legal</h4>
-            <p className="text-slate-400 text-sm">© 2025 Devians LMS Platform 🏛️<br />All rights reserved.</p>
+            <p className="text-slate-400 text-sm">© {year} Devians LMS Platform 🏛️<br />All rights reserved.</p>
           </div>
         </div>
       </footer>

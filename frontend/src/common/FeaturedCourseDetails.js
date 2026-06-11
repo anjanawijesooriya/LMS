@@ -22,6 +22,7 @@ const FeaturedCourseDetails = () => {
   const { featuredCourse } = useSelector(selectFeaturedCourses);
   const { isAuthenticated, user } = useSelector(selectAuthState);
   const { id } = useParams();
+  const year = new Date().getFullYear();
 
   useEffect(() => {
     const t = setTimeout(() => setLoader(false), 1500);
@@ -276,7 +277,7 @@ const FeaturedCourseDetails = () => {
           </div>
           <div className="text-slate-400 text-sm">
             <p>📧 support@devians.lms</p>
-            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
+            <p className="mt-1">© {year} Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

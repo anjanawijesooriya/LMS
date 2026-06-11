@@ -27,6 +27,7 @@ const Enroll = () => {
   const dispatch = useDispatch();
   const { user } = useSelector(selectAuthState);
   const [form] = Form.useForm();
+  const year = new Date().getFullYear();
 
   useEffect(() => {
     const t = setTimeout(() => setLoader(false), 1500);
@@ -292,7 +293,7 @@ const Enroll = () => {
           </div>
           <div className="text-slate-400 text-sm">
             <p>📧 support@devians.lms</p>
-            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
+            <p className="mt-1">© {year} Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

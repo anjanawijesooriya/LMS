@@ -141,7 +141,7 @@ const Classes = () => {
             Choose a Month
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Grade <strong className="text-indigo-600 dark:text-indigo-400">{user?.grade}</strong> — Select a month you've paid for to view its classes
+            <strong className="text-indigo-600 dark:text-indigo-400">{user?.grade}</strong> — Select a month you've paid for to view its classes
           </p>
         </motion.div>
       </div>
@@ -217,7 +217,7 @@ const Classes = () => {
           </div>
           <div className="text-slate-400 text-sm">
             <p>📧 support@devians.lms</p>
-            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
+            <p className="mt-1">© {currentYear} Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>
