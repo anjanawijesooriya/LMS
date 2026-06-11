@@ -142,7 +142,7 @@ const ClassDetails = () => {
     }, {});
 
   const profileMenu = (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[180px]">
       <button
         className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium"
         onClick={() => history(`/user-profile/${user?.firstName}`)}
@@ -153,7 +153,13 @@ const ClassDetails = () => {
         className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium"
         onClick={() => history(`/user-payments/${user?.firstName}`)}
       >
-        💳 Payments
+        📋 My Payments
+      </button>
+      <button
+        className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors font-medium"
+        onClick={() => history(`/user-enroll/${user?.firstName}`)}
+      >
+        💳 Pay for a Month
       </button>
       <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
       <button

@@ -61,12 +61,15 @@ const Classes = () => {
   };
 
   const profileMenu = (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[180px]">
       <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-profile/${user?.firstName}`)}>
         👤 Profile
       </button>
       <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-payments/${user?.firstName}`)}>
-        💳 Payments
+        📋 My Payments
+      </button>
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors font-medium" onClick={() => history(`/user-enroll/${user?.firstName}`)}>
+        💳 Pay for a Month
       </button>
       <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
       <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-medium" onClick={logoutHandler}>
@@ -155,7 +158,11 @@ const Classes = () => {
             const isPaidMonth = paidMonths.some(
               (pm) => pm.toLowerCase() === monthYear.toLowerCase()
             );
-            const isDisabled = !isPaidMonth || isFutureMonth;
+
+            // Three distinct states
+            const isAccessible = isPaidMonth && !isFutureMonth;
+            const isUnpaidPast = !isPaidMonth && !isFutureMonth;
+            // isFutureMonth → hard locked (third state)
 
             return (
               <motion.div
@@ -163,49 +170,83 @@ const Classes = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.04 }}
-                className={`relative h-36 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
-                  isDisabled
-                    ? "opacity-40 cursor-not-allowed grayscale"
-                    : "hover:scale-105 hover:shadow-2xl animate-pulse-glow"
+                className={`relative h-36 rounded-2xl overflow-hidden transition-all duration-300 ${
+                  isAccessible
+                    ? "cursor-pointer hover:scale-105 hover:shadow-2xl animate-pulse-glow"
+                    : isUnpaidPast
+                    ? "cursor-pointer hover:scale-105 hover:shadow-xl"
+                    : "opacity-35 grayscale cursor-not-allowed"
                 }`}
-                onClick={() =>
-                  !isDisabled &&
-                  history(`/classes/${user?.firstName}/${month.toLowerCase()}`)
-                }
+                onClick={() => {
+                  if (isAccessible) history(`/classes/${user?.firstName}/${month.toLowerCase()}`);
+                  if (isUnpaidPast) history(`/user-enroll/${user?.firstName}`);
+                }}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${monthGradients[index]}`} />
 
-                {/* Decorative pattern */}
+                {/* Decorative dot pattern */}
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+
+                {/* Unpaid past: dark overlay to visually separate from paid */}
+                {isUnpaidPast && (
+                  <div className="absolute inset-0 bg-black/45" />
+                )}
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                   <span className="text-3xl mb-1">{monthIcons[index]}</span>
                   <span className="font-poppins font-bold text-base">{month}</span>
-                  {isPaidMonth && !isFutureMonth && (
-                    <span className="mt-1 text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full font-medium">Paid ✓</span>
+
+                  {isAccessible && (
+                    <span className="mt-1 text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full font-medium">
+                      Paid ✓
+                    </span>
                   )}
-                  {isDisabled && (
+
+                  {isUnpaidPast && (
+                    <span className="mt-2 text-xs bg-amber-400/90 text-amber-900 font-semibold px-3 py-1 rounded-full">
+                      💳 Pay Now
+                    </span>
+                  )}
+
+                  {isFutureMonth && (
                     <span className="mt-1 text-xl">🔒</span>
                   )}
                 </div>
 
-                {/* Active glow border */}
-                {!isDisabled && (
+                {/* Glow border for paid/accessible months */}
+                {isAccessible && (
                   <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30" />
+                )}
+
+                {/* Amber dashed border for unpaid past months */}
+                {isUnpaidPast && (
+                  <div className="absolute inset-0 rounded-2xl ring-2 ring-amber-300/70" />
                 )}
               </motion.div>
             );
           })}
         </div>
 
-        <motion.p
+        {/* Legend */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-center text-slate-400 dark:text-slate-500 text-xs mt-8"
+          className="flex flex-wrap justify-center gap-5 mt-8 text-xs text-slate-400 dark:text-slate-500"
         >
-          🔒 Locked months require a payment to be submitted and approved first
-        </motion.p>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block" />
+            Paid — click to view classes
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+            Unpaid — click to submit payment
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block" />
+            Future — not available yet
+          </span>
+        </motion.div>
       </div>
 
       {/* Footer */}
