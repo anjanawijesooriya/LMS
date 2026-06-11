@@ -99,7 +99,7 @@ const App = () => {
           }
         />
         <Route
-          path="/classes/:username/:month"
+          path="/classes/:username/:year/:month"
           element={
             <PrivateRoute>
               <ClassDetails />

@@ -97,8 +97,14 @@ exports.approvePayment = async (req, res) => {
 
     const paymentYear = payment.year || new Date().getFullYear();
     const monthIndex = new Date(`${payment.month} 1, ${paymentYear}`).getMonth() + 1;
-    // Set expiry to 1st of NEXT month (exclusive end of paid month)
-    const expiryDate = new Date(paymentYear, monthIndex, 1);
+    // Expiry = 1st of the month AFTER the paid month
+    const newExpiryDate = new Date(paymentYear, monthIndex, 1);
+
+    // Never let a past-month approval roll back an existing later expiry
+    const currentExpiry = user.membership.expiryDate
+      ? new Date(user.membership.expiryDate)
+      : new Date(0);
+    const expiryDate = newExpiryDate > currentExpiry ? newExpiryDate : currentExpiry;
 
     user.membership.status = "active";
     user.membership.expiryDate = expiryDate;

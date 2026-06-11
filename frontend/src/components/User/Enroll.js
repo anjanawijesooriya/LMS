@@ -27,7 +27,9 @@ const Enroll = () => {
   const dispatch = useDispatch();
   const { user } = useSelector(selectAuthState);
   const [form] = Form.useForm();
-  const year = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+  // Allow current year and the two previous years
+  const yearOptions = [currentYear, currentYear - 1, currentYear - 2];
 
   useEffect(() => {
     const t = setTimeout(() => setLoader(false), 1500);
@@ -49,6 +51,7 @@ const Enroll = () => {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       studentId: user?.studentId || "",
+      year: currentYear,
     });
   }, [user, form]);
 
@@ -82,14 +85,14 @@ const Enroll = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const { firstName, lastName, studentId, amount, month, remarks } = values;
+      const { firstName, lastName, studentId, amount, month, year, remarks } = values;
       const requestData = {
         firstName, lastName, studentId,
         amount: Number(amount),
         month,
+        year: Number(year),
         remarks: remarks || "",
         slipImage: slipUrl || null,
-        year: new Date().getFullYear(),
       };
       const response = await dispatch(addPayment(requestData));
       if (response.success) {
@@ -219,22 +222,33 @@ const Enroll = () => {
                   <Input disabled className="rounded-xl" />
                 </Form.Item>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <Form.Item
                     label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Amount (Rs.)</span>}
                     name="amount"
-                    rules={[{ required: true, message: "Enter the amount" }]}
+                    rules={[{ required: true, message: "Enter amount" }]}
                   >
                     <Input type="number" min={1} placeholder="e.g. 2500" className="rounded-xl" />
                   </Form.Item>
                   <Form.Item
                     label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Month</span>}
                     name="month"
-                    rules={[{ required: true, message: "Select a month" }]}
+                    rules={[{ required: true, message: "Select month" }]}
                   >
                     <Select placeholder="Select Month" className="rounded-xl">
                       {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m) => (
                         <Option key={m} value={m}>{m}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item
+                    label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Year</span>}
+                    name="year"
+                    rules={[{ required: true, message: "Select year" }]}
+                  >
+                    <Select className="rounded-xl">
+                      {yearOptions.map((y) => (
+                        <Option key={y} value={y}>{y}</Option>
                       ))}
                     </Select>
                   </Form.Item>
@@ -293,7 +307,7 @@ const Enroll = () => {
           </div>
           <div className="text-slate-400 text-sm">
             <p>📧 support@devians.lms</p>
-            <p className="mt-1">© {year} Devians LMS Platform 🏛️ All rights reserved.</p>
+            <p className="mt-1">© {currentYear} Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

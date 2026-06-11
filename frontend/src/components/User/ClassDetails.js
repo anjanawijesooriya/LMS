@@ -80,7 +80,7 @@ const ClassDetails = () => {
 
   const history = useNavigate();
   const dispatch = useDispatch();
-  const { month } = useParams();
+  const { month, year } = useParams();
   const { user } = useSelector(selectAuthState);
   const { classes } = useSelector(selectClassState);
 
@@ -110,7 +110,7 @@ const ClassDetails = () => {
 
   useEffect(() => {
     filterByGradeAndPayment();
-  }, [classes, user, month]);
+  }, [classes, user, month, year]);
 
   const logoutHandler = () => {
     dispatch(logoutUser());
@@ -118,15 +118,17 @@ const ClassDetails = () => {
   };
 
   const filterByGradeAndPayment = () => {
-    if (!classes || !user || !month) return;
+    if (!classes || !user || !month || !year) return;
     const paidMonths =
       user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
     const filtered = classes.filter((item) => {
       const classMonth = moment(item.classDate).format("MMMM").toLowerCase();
+      const classYear = String(moment(item.classDate).year());
       const classMonthYear = moment(item.classDate).format("MMMM-YYYY");
       return (
         item.classGrade === user.grade &&
         classMonth === month.toLowerCase() &&
+        classYear === String(year) &&
         paidMonths.includes(classMonthYear)
       );
     });
@@ -286,7 +288,7 @@ const ClassDetails = () => {
             ← Back to Months
           </button>
           <h1 className="font-poppins text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 capitalize">
-            {month} Classes
+            {month} {year} Classes
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
             <strong className="text-indigo-600 dark:text-indigo-400">
@@ -300,20 +302,14 @@ const ClassDetails = () => {
       {Object.keys(grouped).length === 0 ? (
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center max-w-sm">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="font-poppins font-semibold text-xl text-slate-700 dark:text-slate-300 mb-2">
-              No classes found
+            <div className="text-6xl mb-4">📅</div>
+            <h3 className="font-poppins font-semibold text-xl text-slate-700 dark:text-slate-300 mb-2 capitalize">
+              No classes scheduled yet
             </h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Check that your payment has been approved and classes have been
-              scheduled for your grade.
+              Your payment for <strong className="text-indigo-600 dark:text-indigo-400 capitalize">{month} {year}</strong> is approved.
+              Classes for this month haven't been added yet — check back soon.
             </p>
-            <button
-              className="btn-primary mt-5 text-sm"
-              onClick={() => history(`/user-enroll/${user?.firstName}`)}
-            >
-              Submit Payment
-            </button>
           </div>
         </div>
       ) : (

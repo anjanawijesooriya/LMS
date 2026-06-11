@@ -91,7 +91,16 @@ const Classes = () => {
 
   const currentMonthIndex = new Date().getMonth();
   const currentYear = new Date().getFullYear();
+
+  // All paid month strings e.g. ["June-2025", "April-2026"]
   const paidMonths = user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
+
+  // Collect all unique years from paidMonths, always include current year
+  const paidYears = paidMonths.map((pm) => {
+    const parts = pm.split("-");
+    return Number(parts[parts.length - 1]);
+  });
+  const allYears = [...new Set([currentYear, ...paidYears])].sort((a, b) => b - a);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
@@ -127,7 +136,8 @@ const Classes = () => {
         {menuOpen && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4 flex flex-col items-center gap-3">
             <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
-            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>📋 My Payments</button>
+            <button className="w-full text-sm text-amber-600 dark:text-amber-400 py-2" onClick={() => history(`/user-enroll/${user?.firstName}`)}>💳 Pay for a Month</button>
             <button className="w-full text-sm text-rose-600 py-2" onClick={logoutHandler}>🚪 Logout</button>
             <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
           </motion.div>
@@ -135,104 +145,124 @@ const Classes = () => {
       </nav>
 
       {/* Page header */}
-      <div className="pt-24 pb-8 px-4 md:px-8 max-w-7xl mx-auto w-full">
+      <div className="pt-24 pb-6 px-4 md:px-8 max-w-7xl mx-auto w-full">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-          <span className="inline-block px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-sm font-medium rounded-full mb-3">
-            {currentYear} Classes
-          </span>
           <h1 className="font-poppins text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
             Choose a Month
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            <strong className="text-indigo-600 dark:text-indigo-400">{user?.grade}</strong> — Select a month you've paid for to view its classes
+            <strong className="text-indigo-600 dark:text-indigo-400">{user?.grade}</strong> — Select a paid month to view its classes
           </p>
         </motion.div>
       </div>
 
-      {/* Month grid */}
-      <div className="px-4 md:px-8 pb-16 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {months.map((month, index) => {
-            const monthYear = `${month.trim()}-${currentYear}`;
-            const isFutureMonth = index > currentMonthIndex;
-            const isPaidMonth = paidMonths.some(
-              (pm) => pm.toLowerCase() === monthYear.toLowerCase()
-            );
+      {/* Year sections */}
+      <div className="px-4 md:px-8 pb-16 max-w-7xl mx-auto w-full space-y-12">
+        {allYears.map((year) => {
+          const isPastYear = year < currentYear;
 
-            // Three distinct states
-            const isAccessible = isPaidMonth && !isFutureMonth;
-            const isUnpaidPast = !isPaidMonth && !isFutureMonth;
-            // isFutureMonth → hard locked (third state)
-
-            return (
+          return (
+            <div key={year}>
+              {/* Year divider */}
               <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.04 }}
-                className={`relative h-36 rounded-2xl overflow-hidden transition-all duration-300 ${
-                  isAccessible
-                    ? "cursor-pointer hover:scale-105 hover:shadow-2xl animate-pulse-glow"
-                    : isUnpaidPast
-                    ? "cursor-pointer hover:scale-105 hover:shadow-xl"
-                    : "opacity-35 grayscale cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  if (isAccessible) history(`/classes/${user?.firstName}/${month.toLowerCase()}`);
-                  if (isUnpaidPast) history(`/user-enroll/${user?.firstName}`);
-                }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-4 mb-6"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${monthGradients[index]}`} />
-
-                {/* Decorative dot pattern */}
-                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
-
-                {/* Unpaid past: dark overlay to visually separate from paid */}
-                {isUnpaidPast && (
-                  <div className="absolute inset-0 bg-black/45" />
-                )}
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                  <span className="text-3xl mb-1">{monthIcons[index]}</span>
-                  <span className="font-poppins font-bold text-base">{month}</span>
-
-                  {isAccessible && (
-                    <span className="mt-1 text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full font-medium">
-                      Paid ✓
+                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                <div className="flex items-center gap-2">
+                  <span className="font-poppins font-bold text-xl text-slate-700 dark:text-slate-300">{year}</span>
+                  {year === currentYear && (
+                    <span className="text-xs px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-full font-medium">
+                      Current
                     </span>
                   )}
-
-                  {isUnpaidPast && (
-                    <span className="mt-2 text-xs bg-amber-400/90 text-amber-900 font-semibold px-3 py-1 rounded-full">
-                      💳 Pay Now
+                  {isPastYear && (
+                    <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full font-medium">
+                      Past
                     </span>
-                  )}
-
-                  {isFutureMonth && (
-                    <span className="mt-1 text-xl">🔒</span>
                   )}
                 </div>
-
-                {/* Glow border for paid/accessible months */}
-                {isAccessible && (
-                  <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30" />
-                )}
-
-                {/* Amber dashed border for unpaid past months */}
-                {isUnpaidPast && (
-                  <div className="absolute inset-0 rounded-2xl ring-2 ring-amber-300/70" />
-                )}
+                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
               </motion.div>
-            );
-          })}
-        </div>
+
+              {/* Month grid for this year */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {months.map((month, index) => {
+                  const monthYear = `${month.trim()}-${year}`;
+                  // Future only applies to current year — past years have no future months
+                  const isFutureMonth = year === currentYear && index > currentMonthIndex;
+                  const isPaidMonth = paidMonths.some(
+                    (pm) => pm.toLowerCase() === monthYear.toLowerCase()
+                  );
+
+                  const isAccessible = isPaidMonth && !isFutureMonth;
+                  const isUnpaidPast = !isPaidMonth && !isFutureMonth;
+
+                  return (
+                    <motion.div
+                      key={`${year}-${index}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.03 }}
+                      className={`relative h-36 rounded-2xl overflow-hidden transition-all duration-300 ${
+                        isAccessible
+                          ? "cursor-pointer hover:scale-105 hover:shadow-2xl animate-pulse-glow"
+                          : isUnpaidPast
+                          ? "cursor-pointer hover:scale-105 hover:shadow-xl"
+                          : "opacity-35 grayscale cursor-not-allowed"
+                      }`}
+                      onClick={() => {
+                        if (isAccessible) history(`/classes/${user?.firstName}/${year}/${month.toLowerCase()}`);
+                        if (isUnpaidPast) history(`/user-enroll/${user?.firstName}`);
+                      }}
+                    >
+                      <div className={`absolute inset-0 bg-gradient-to-br ${monthGradients[index]}`} />
+                      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+
+                      {isUnpaidPast && (
+                        <div className="absolute inset-0 bg-black/45" />
+                      )}
+
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                        <span className="text-3xl mb-1">{monthIcons[index]}</span>
+                        <span className="font-poppins font-bold text-base">{month}</span>
+
+                        {isAccessible && (
+                          <span className="mt-1 text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full font-medium">
+                            Paid ✓
+                          </span>
+                        )}
+                        {isUnpaidPast && (
+                          <span className="mt-2 text-xs bg-amber-400/90 text-amber-900 font-semibold px-3 py-1 rounded-full">
+                            💳 Pay Now
+                          </span>
+                        )}
+                        {isFutureMonth && (
+                          <span className="mt-1 text-xl">🔒</span>
+                        )}
+                      </div>
+
+                      {isAccessible && (
+                        <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30" />
+                      )}
+                      {isUnpaidPast && (
+                        <div className="absolute inset-0 rounded-2xl ring-2 ring-amber-300/70" />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
 
         {/* Legend */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-5 mt-8 text-xs text-slate-400 dark:text-slate-500"
+          transition={{ delay: 0.5 }}
+          className="flex flex-wrap justify-center gap-5 text-xs text-slate-400 dark:text-slate-500"
         >
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block" />
