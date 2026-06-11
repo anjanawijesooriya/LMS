@@ -210,9 +210,10 @@ const Profile = () => {
               <div className="blob w-24 h-24 bg-white/10 bottom-0 left-20" style={{ animationDelay: "-2s" }} />
             </div>
 
-            {/* Profile photo */}
+            {/* Profile photo + identity */}
             <div className="px-6 pb-4">
-              <div className="flex items-end gap-4 -mt-14 mb-4">
+              {/* Avatar row: avatar left, status badge right */}
+              <div className="flex items-start justify-between -mt-12 mb-4">
                 <div className="relative flex-shrink-0">
                   <Avatar
                     size={96}
@@ -230,17 +231,27 @@ const Profile = () => {
                     </button>
                   </Upload>
                 </div>
-                <div className="mb-2">
-                  <h2 className="font-poppins font-bold text-xl text-slate-900 dark:text-white">{`${user?.firstName} ${user?.lastName}`}</h2>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs">{user?.studentId}</p>
-                </div>
-                <div className="mb-2 ml-auto">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                {/* Status badge pushed down to clear the banner overlap */}
+                <div className="mt-16">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
                     user?.membership?.status === "active"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
-                      : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700"
+                      : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700"
                   }`}>
-                    {user?.membership?.status === "active" ? "✅ Active" : "⏳ Pending"}
+                    {user?.membership?.status === "active" ? "✅ Active Member" : "⏳ Pending"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Name + Student ID — own full-width row for clarity */}
+              <div className="mb-5">
+                <h2 className="font-poppins font-bold text-2xl text-slate-900 dark:text-white leading-tight">
+                  {user?.firstName} {user?.lastName}
+                </h2>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">🪪</span>
+                  <span className="text-sm font-mono font-medium text-indigo-600 dark:text-indigo-400 tracking-wide">
+                    {user?.studentId || "—"}
                   </span>
                 </div>
               </div>
