@@ -1,21 +1,7 @@
-import {
-  Modal,
-  Button,
-  Tooltip,
-  Input,
-  Spin,
-  ConfigProvider,
-  notification,
-} from "antd";
-import React, { useState, useEffect } from "react";
-import { Form } from "antd";
-import {
-  InfoCircleOutlined,
-  MailOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons";
+import { Modal, Spin, notification } from "antd";
+import React, { useState } from "react";
+import { LoadingOutlined, MailOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 
 const ForgotPassword = () => {
   const [visible, setVisible] = useState(false);
@@ -23,32 +9,11 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [theme, setTheme] = useState("light");
 
-  const location = useLocation();
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    // Detect system dark mode
-    const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setTheme(darkMode ? "dark" : "light");
-
-    // Listener for theme changes
-    const themeChangeListener = (e) => {
-      setTheme(e.matches ? "dark" : "light");
-    };
-    window
-      .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", themeChangeListener);
-
-    return () => {
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .removeEventListener("change", themeChangeListener);
-    };
-  }, []);
-
-  const forgotPasswordHandler = async () => {
+  const forgotPasswordHandler = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
     setLoading(true);
     const config = { headers: { "Content-Type": "application/json" } };
 
@@ -58,121 +23,112 @@ const ForgotPassword = () => {
         { email },
         config
       );
-
-      setSuccess(data.verify);
+      setSuccess(data.verify || "Reset email sent!");
       setTimeout(() => {
         notification.success({
-          message: "Success",
-          description: "Email sent",
+          message: "Email Sent",
+          description: "Check your inbox for the password reset link.",
           placement: "topRight",
         });
         setLoading(false);
         setVisible(false);
-      }, 3000);
-    } catch (error) {
-      if (error.response) {
-        if (error.response.status === 404) {
-          setError("User not found. Please enter a valid email address!");
-        } else {
-          setError(
-            error.response.data.error ||
-              "Something went wrong. Please try again."
-          );
-        }
+        setEmail("");
+        setSuccess("");
+      }, 2500);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError("No account found with this email address.");
       } else {
-        setError("Network error. Please check your connection.");
+        setError(err.response?.data?.error || "Something went wrong. Please try again.");
       }
       setTimeout(() => {
         setLoading(false);
         setError("");
-        setSuccess("");
       }, 3000);
     }
   };
 
   return (
-    <ConfigProvider theme={{ mode: theme }}>
-      <a
-        className="forget-text cursor-pointer text-blue-600 dark:text-blue-400"
-        onClick={() => setVisible(true)}
+    <>
+      <button
+        type="button"
+        className="text-indigo-600 dark:text-indigo-400 text-sm hover:underline font-medium"
+        onClick={() => { setVisible(true); setEmail(""); setError(""); setSuccess(""); }}
       >
         Forgot password?
-      </a>
+      </button>
+
       <Modal
         open={visible}
-        title={
-          <span className="text-gray-800 dark:text-black">
-            Password Request Form
-          </span>
-        }
-        onCancel={() => setVisible(false)}
+        onCancel={() => { if (!loading) setVisible(false); }}
         footer={null}
-        className="dark:bg-gray-900"
+        centered
+        closable={!loading}
+        width={440}
+        styles={{ content: { borderRadius: "1.5rem", padding: 0, overflow: "hidden" } }}
       >
-        <div className="text-center">
-          {error && <p className="text-red-500">{error}</p>}
-          {success && <p className="text-green-500">{success}</p>}
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-6">
+          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+            <MailOutlined className="text-white text-xl" />
+          </div>
+          <h2 className="font-poppins font-bold text-white text-xl">Reset your password</h2>
+          <p className="text-indigo-200 text-sm mt-1">
+            Enter your account email and we'll send a reset link.
+          </p>
         </div>
 
-        <Form
-          form={form}
-          name="forgot-password"
-          onFinish={forgotPasswordHandler}
-          className="space-y-4"
-        >
-          <Form.Item
-            name="email"
-            label={
-              <span className="text-gray-700 dark:text-gray-300">Email</span>
-            }
-            rules={[
-              { required: true, message: "Please enter your email!" },
-              { type: "email", message: "Enter a valid email address!" },
-              { max: 50, message: "Email must be under 50 characters!" },
-            ]}
-          >
-            <Input
-              className="w-full p-2 border rounded-lg dark:bg-gray-100 dark:border-gray-700 dark:text-black"
-              placeholder="Enter your registered email"
-              prefix={
-                <MailOutlined className="text-gray-500 dark:text-black" />
-              }
-              suffix={
-                <Tooltip title="Enter the email associated with your account">
-                  <InfoCircleOutlined className="text-gray-400" />
-                </Tooltip>
-              }
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <div className="flex justify-center gap-4">
-              <Button
-                type="primary"
-                htmlType="submit"
-                className="bg-blue-600 dark:bg-blue-500"
-              >
-                {loading ? (
-                  <>
-                    <Spin indicator={<LoadingOutlined />} /> Requesting...
-                  </>
-                ) : (
-                  "Request"
-                )}
-              </Button>
-              <Button
-                onClick={() => setVisible(false)}
-                className="bg-gray-400 dark:bg-gray-200"
-              >
-                Return
-              </Button>
+        {/* Body */}
+        <div className="px-8 py-6">
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm mb-4">
+              ⚠️ {error}
             </div>
-          </Form.Item>
-        </Form>
+          )}
+          {success && (
+            <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm mb-4">
+              ✅ {success}
+            </div>
+          )}
+
+          <form onSubmit={forgotPasswordHandler} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-700">Email address</label>
+              <div className="relative">
+                <MailOutlined className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              >
+                {loading ? <Spin indicator={<LoadingOutlined style={{ color: "white", fontSize: 16 }} />} /> : "Send Reset Link"}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                className="px-5 py-3 border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 font-semibold rounded-xl transition-all duration-300 text-sm disabled:opacity-60"
+                onClick={() => setVisible(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       </Modal>
-    </ConfigProvider>
+    </>
   );
 };
 

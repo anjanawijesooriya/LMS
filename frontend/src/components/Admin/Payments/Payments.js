@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Spin, Button, notification, Tag, Modal, Form, Image } from "antd";
+import { Table, Input, Button, notification, Tag, Modal, Form, Image } from "antd";
 import {
   CheckOutlined,
   CloseOutlined,
   DownloadOutlined,
   CheckSquareOutlined,
+  SearchOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
 import axios from "axios";
@@ -14,13 +16,8 @@ const { Search } = Input;
 const exportToCSV = (data) => {
   const headers = ["First Name", "Last Name", "Student ID", "Month", "Year", "Amount", "Status", "Submitted On"];
   const rows = data.map((p) => [
-    p.firstName,
-    p.lastName,
-    p.studentId,
-    p.month,
-    p.year || "",
-    p.amount,
-    p.status,
+    p.firstName, p.lastName, p.studentId, p.month, p.year || "",
+    p.amount, p.status,
     p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "",
   ]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
@@ -46,7 +43,7 @@ const Payments = ({ onUpdate }) => {
   const [slipPreview, setSlipPreview] = useState(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoader(false), 1500);
+    const timer = setTimeout(() => setLoader(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -60,19 +57,18 @@ const Payments = ({ onUpdate }) => {
     }
   };
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
+  useEffect(() => { fetchPayments(); }, []);
 
   const handleSearch = (value) => {
     const v = value.toLowerCase();
-    const filtered = data.filter(
-      (pay) =>
-        pay.firstName.toLowerCase().includes(v) ||
-        pay.lastName.toLowerCase().includes(v) ||
-        pay.studentId.toLowerCase().includes(v)
+    setFilteredData(
+      data.filter(
+        (pay) =>
+          pay.firstName.toLowerCase().includes(v) ||
+          pay.lastName.toLowerCase().includes(v) ||
+          pay.studentId.toLowerCase().includes(v)
+      )
     );
-    setFilteredData(filtered);
   };
 
   const handleApprove = (payment) => {
@@ -106,8 +102,8 @@ const Payments = ({ onUpdate }) => {
         onUpdate();
       }
     } catch (error) {
-      if (error?.errorFields) return; // form validation error, don't close
-      notification.error({ message: `Error: ${actionType === "approve" ? "approving" : "rejecting"} payment` });
+      if (error?.errorFields) return;
+      notification.error({ message: `Error ${actionType === "approve" ? "approving" : "rejecting"} payment` });
     } finally {
       setLoading(false);
       setModalVisible(false);
@@ -140,6 +136,10 @@ const Payments = ({ onUpdate }) => {
     }),
   };
 
+  const pendingCount = data.filter((p) => p.status === "pending").length;
+  const approvedCount = data.filter((p) => p.status === "approved").length;
+  const totalApproved = data.filter((p) => p.status === "approved").reduce((s, p) => s + p.amount, 0);
+
   const columns = [
     {
       title: "First Name",
@@ -158,14 +158,17 @@ const Payments = ({ onUpdate }) => {
       title: "Month",
       dataIndex: "month",
       key: "month",
-      filters: [
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December",
-      ].map((m) => ({ text: m, value: m })),
+      filters: ["January","February","March","April","May","June","July","August","September","October","November","December"].map((m) => ({ text: m, value: m })),
       onFilter: (value, record) => record.month === value,
     },
     { title: "Year", dataIndex: "year", key: "year" },
-    { title: "Amount (Rs.)", dataIndex: "amount", key: "amount", sorter: (a, b) => a.amount - b.amount },
+    {
+      title: "Amount (Rs.)",
+      dataIndex: "amount",
+      key: "amount",
+      sorter: (a, b) => a.amount - b.amount,
+      render: (v) => `Rs. ${v?.toLocaleString()}`,
+    },
     { title: "Remarks", dataIndex: "remarks", key: "remarks" },
     {
       title: "Slip",
@@ -173,11 +176,14 @@ const Payments = ({ onUpdate }) => {
       key: "slipImage",
       render: (url) =>
         url ? (
-          <Button size="small" onClick={() => setSlipPreview(url)}>
-            View Slip
-          </Button>
+          <button
+            className="text-xs text-indigo-600 hover:underline font-medium"
+            onClick={() => setSlipPreview(url)}
+          >
+            View
+          </button>
         ) : (
-          <span className="text-gray-400 text-xs">No slip</span>
+          <span className="text-slate-400 text-xs">—</span>
         ),
     },
     {
@@ -192,33 +198,18 @@ const Payments = ({ onUpdate }) => {
       onFilter: (value, record) => record.status === value,
       render: (status) => {
         const colors = { approved: "green", pending: "gold", rejected: "red" };
-        return (
-          <Tag color={colors[status] || "default"}>
-            {status?.charAt(0).toUpperCase() + status?.slice(1)}
-          </Tag>
-        );
+        return <Tag color={colors[status] || "default"}>{status?.charAt(0).toUpperCase() + status?.slice(1)}</Tag>;
       },
     },
     {
       title: "Action",
       render: (_, record) => (
         <div className="flex gap-2">
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => handleApprove(record)}
-            disabled={record.status !== "pending"}
-          >
-            <CheckOutlined /> Approve
+          <Button type="primary" size="small" icon={<CheckOutlined />} onClick={() => handleApprove(record)} disabled={record.status !== "pending"}>
+            Approve
           </Button>
-          <Button
-            type="primary"
-            danger
-            size="small"
-            onClick={() => handleReject(record)}
-            disabled={record.status !== "pending"}
-          >
-            <CloseOutlined /> Reject
+          <Button type="primary" danger size="small" icon={<CloseOutlined />} onClick={() => handleReject(record)} disabled={record.status !== "pending"}>
+            Reject
           </Button>
         </div>
       ),
@@ -226,49 +217,84 @@ const Payments = ({ onUpdate }) => {
   ];
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md">
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-        <h2 className="text-xl font-semibold">Payments Management</h2>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            icon={<CheckSquareOutlined />}
-            disabled={selectedRowKeys.length === 0 || loading}
-            onClick={handleBulkApprove}
-            type="primary"
-          >
-            Bulk Approve ({selectedRowKeys.length})
-          </Button>
-          <Button icon={<DownloadOutlined />} onClick={() => exportToCSV(filteredData)}>
-            Export CSV
-          </Button>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-xl flex items-center justify-center">
+              <DollarOutlined className="text-white text-base" />
+            </div>
+            <div>
+              <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-lg leading-tight">Payments Management</h2>
+              <p className="text-xs text-slate-400">{filteredData.length} records</p>
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              icon={<CheckSquareOutlined />}
+              disabled={selectedRowKeys.length === 0 || loading}
+              onClick={handleBulkApprove}
+              type="primary"
+            >
+              Bulk Approve ({selectedRowKeys.length})
+            </Button>
+            <Button icon={<DownloadOutlined />} onClick={() => exportToCSV(filteredData)}>
+              Export CSV
+            </Button>
+          </div>
+        </div>
+
+        {/* Summary chips */}
+        <div className="flex gap-3 flex-wrap">
+          <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2">
+            <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+            <span className="text-xs text-amber-700 font-medium">{pendingCount} pending</span>
+          </div>
+          <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+            <span className="text-xs text-emerald-700 font-medium">{approvedCount} approved</span>
+          </div>
+          <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center gap-2">
+            <span className="text-xs text-indigo-700 font-medium">Rs. {totalApproved.toLocaleString()} collected</span>
+          </div>
         </div>
       </div>
 
-      <Search
-        placeholder="Search by name or student ID"
-        enterButton
-        allowClear
-        onSearch={handleSearch}
-        className="mb-4 w-full md:w-1/2"
-      />
-
-      {loader ? (
-        <center className="mt-20">
-          <Spin size="large" />
-        </center>
-      ) : (
-        <Table
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={filteredData}
-          rowKey="_id"
-          bordered
-          pagination={{ pageSize: 10, showSizeChanger: true }}
-          scroll={{ x: "max-content" }}
+      <div className="px-6 pt-4 pb-2">
+        <Search
+          prefix={<SearchOutlined className="text-slate-400" />}
+          placeholder="Search by name or student ID"
+          enterButton
+          allowClear
+          onSearch={handleSearch}
+          className="w-full md:w-1/2"
         />
-      )}
+      </div>
 
-      {/* Approve / Reject Confirmation Modal */}
+      <div className="px-6 pb-6">
+        {loader ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-slate-400 text-sm">Loading payments...</p>
+            </div>
+          </div>
+        ) : (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={filteredData}
+            rowKey="_id"
+            bordered={false}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            scroll={{ x: "max-content" }}
+            className="mt-4"
+          />
+        )}
+      </div>
+
+      {/* Approve / Reject Modal */}
       <Modal
         title={actionType === "approve" ? "Approve Payment" : "Reject Payment"}
         open={modalVisible}
@@ -280,7 +306,7 @@ const Payments = ({ onUpdate }) => {
         centered
       >
         {actionType === "approve" ? (
-          <p>Are you sure you want to approve this payment from <strong>{selectedPayment?.firstName} {selectedPayment?.lastName}</strong> for <strong>{selectedPayment?.month} {selectedPayment?.year}</strong>?</p>
+          <p>Approve payment from <strong>{selectedPayment?.firstName} {selectedPayment?.lastName}</strong> for <strong>{selectedPayment?.month} {selectedPayment?.year}</strong>?</p>
         ) : (
           <Form form={rejectForm} layout="vertical">
             <p className="mb-3">Rejecting payment for <strong>{selectedPayment?.firstName} {selectedPayment?.lastName}</strong> — <strong>{selectedPayment?.month} {selectedPayment?.year}</strong></p>
@@ -291,7 +317,7 @@ const Payments = ({ onUpdate }) => {
         )}
       </Modal>
 
-      {/* Slip Image Preview Modal */}
+      {/* Slip Preview Modal */}
       <Modal
         title="Payment Slip"
         open={!!slipPreview}
@@ -299,9 +325,7 @@ const Payments = ({ onUpdate }) => {
         footer={null}
         centered
       >
-        {slipPreview && (
-          <Image src={slipPreview} alt="Payment Slip" style={{ width: "100%" }} />
-        )}
+        {slipPreview && <Image src={slipPreview} alt="Payment Slip" style={{ width: "100%" }} />}
       </Modal>
     </div>
   );

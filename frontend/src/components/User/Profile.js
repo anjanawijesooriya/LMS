@@ -1,62 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Button,
-  Input,
-  Card,
-  Switch,
-  Spin,
-  Dropdown,
-  Avatar,
-  Form,
-  Select,
-  notification,
-  Modal,
-  Upload,
+  Input, Switch, Dropdown, Avatar, Form, Select, notification, Modal, Upload,
 } from "antd";
 import {
-  CloseOutlined,
-  MenuOutlined,
-  LoadingOutlined,
-  ExclamationCircleOutlined,
-  CameraOutlined,
+  CloseOutlined, MenuOutlined, LoadingOutlined, ExclamationCircleOutlined, CameraOutlined,
 } from "@ant-design/icons";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import {
-  logoutUser,
-  editUser,
-  deleteUser,
+  logoutUser, editUser, deleteUser,
 } from "../../redux/features/auth/authActions";
 
 const { Option } = Select;
 const { confirm } = Modal;
 
 const GRADES = [
-  "Pre-School",
-  "Grade 1",
-  "Grade 2",
-  "Grade 3",
-  "Grade 4",
-  "Grade 5",
-  "Grade 6",
-  "Grade 7",
-  "Grade 8",
-  "Grade 9",
-  "Grade 10",
-  "Grade 11",
-  "Grade 12",
-  "Grade 13",
+  "Pre-School","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6",
+  "Grade 7","Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","Grade 13",
 ];
 
 const Profile = () => {
   const [loader, setLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark",
-  );
+  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -67,8 +37,8 @@ const Profile = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoader(false), 1500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
@@ -95,17 +65,11 @@ const Profile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.data.success) {
-        const response = await dispatch(
-          editUser({ id: user?.id, profilePhoto: res.data.url }),
-        );
-        if (response.success) {
-          notification.success({ message: "Profile photo updated!" });
-        }
+        const response = await dispatch(editUser({ id: user?.id, profilePhoto: res.data.url }));
+        if (response.success) notification.success({ message: "Profile photo updated!" });
       }
-    } catch (error) {
-      notification.error({
-        message: "Failed to upload photo. Please try again.",
-      });
+    } catch {
+      notification.error({ message: "Failed to upload photo. Please try again." });
     } finally {
       setUploadingPhoto(false);
     }
@@ -114,57 +78,26 @@ const Profile = () => {
 
   const handleDeleteAccount = () => {
     confirm({
-      title: "Are you sure you want to delete your account?",
+      title: "Delete your account?",
       icon: <ExclamationCircleOutlined />,
-      content:
-        "This action is irreversible. All your data will be permanently lost.",
+      content: "This action is irreversible. All your data will be permanently lost.",
       okText: "Yes, Delete",
       okType: "danger",
       cancelText: "Cancel",
       onOk: async () => {
         const response = await dispatch(deleteUser(user?.id));
         if (response.success) {
-          notification.success({
-            message: "Account Deleted",
-            description: "Your account has been successfully deleted.",
-          });
+          notification.success({ message: "Account Deleted", description: "Your account has been successfully deleted." });
           setTimeout(() => {
             dispatch(logoutUser());
             history("/login");
           }, 2000);
         } else {
-          notification.error({
-            message: "Error",
-            description: response.message,
-          });
+          notification.error({ message: "Error", description: response.message });
         }
       },
     });
   };
-
-  const profileMenu = (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <Button
-        type="default"
-        block
-        className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${user?.firstName}`)}
-      >
-        Profile
-      </Button>
-      <Button
-        type="default"
-        block
-        className="mb-2"
-        onClick={() => history(`/user-payments/${user?.firstName}`)}
-      >
-        Payments
-      </Button>
-      <Button type="default" block onClick={logoutHandler}>
-        Logout
-      </Button>
-    </div>
-  );
 
   const handleEdit = () => {
     setEditing(true);
@@ -179,17 +112,13 @@ const Profile = () => {
 
   const handleSave = async (values) => {
     setLoading(true);
-    const updatedUserData = { ...values, id: user?.id };
-    const response = await dispatch(editUser(updatedUserData));
-
+    const response = await dispatch(editUser({ ...values, id: user?.id }));
     if (response.success) {
       notification.success({ message: "Profile updated successfully!" });
       setEditing(false);
       setLoading(false);
       setTimeout(() => {
-        notification.warning({
-          message: "Please log in again to see your changes.",
-        });
+        notification.warning({ message: "Please log in again to see your changes." });
         setTimeout(() => {
           dispatch(logoutUser());
           history("/login");
@@ -201,304 +130,227 @@ const Profile = () => {
     }
   };
 
-  return loader ? (
-    <center className="mt-80">
-      <Spin size="large" />
-    </center>
-  ) : (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  const profileMenu = (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+      <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-medium" onClick={logoutHandler}>🚪 Logout</button>
+    </div>
+  );
+
+  if (loader) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-poppins text-slate-500 dark:text-slate-400 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+
       {/* Navbar */}
-      <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1
-          className="text-xl font-bold cursor-pointer"
-          onClick={() => history(`/user-dashboard/${user?.firstName}`)}
-        >
-          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
-        </h1>
-        <div className="hidden md:flex gap-4">
-          <Button
-            type={user?.membership?.status === "active" ? "default" : "primary"}
-            className="!h-10 flex items-center justify-center"
-            onClick={() =>
-              user?.membership?.status === "active"
-                ? history(`/user-classes/${user?.firstName}`)
-                : history(`/user-enroll/${user?.firstName}`)
-            }
-          >
-            {user?.membership?.status === "active" ? "Classes" : "Enroll"}
-          </Button>
-          <Dropdown
-            overlay={profileMenu}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <div className="relative cursor-pointer">
-              <Avatar
-                className="bg-blue-500"
-                size={40}
-                src={user?.profilePhoto || undefined}
-              >
-                {!user?.profilePhoto &&
-                  user?.firstName?.charAt(0).toUpperCase()}
-              </Avatar>
-              {user?.membership?.status && (
-                <span
-                  className={`absolute top-0 right-0 text-sm ${user?.membership?.status === "active" ? "text-green-500" : "text-yellow-500"}`}
-                >
+      <nav className="fixed top-0 w-full glass-nav z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
+          <h1 className="font-poppins text-xl font-bold gradient-text cursor-pointer" onClick={() => history(`/user-dashboard/${user?.firstName}`)}>
+            Devians ✦ LMS
+          </h1>
+          <div className="hidden md:flex items-center gap-3">
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+            <button
+              className={`text-sm font-medium px-5 py-2 rounded-xl transition-all duration-300 ${user?.membership?.status === "active" ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700" : "btn-primary"}`}
+              onClick={() => user?.membership?.status === "active" ? history(`/user-classes/${user?.firstName}`) : history(`/user-enroll/${user?.firstName}`)}
+            >
+              {user?.membership?.status === "active" ? "📚 Classes" : "🎓 Enroll"}
+            </button>
+            <Dropdown overlay={profileMenu} trigger={["click"]} placement="bottomRight">
+              <div className="relative cursor-pointer">
+                <Avatar className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold" size={40} src={user?.profilePhoto || undefined}>
+                  {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                </Avatar>
+                <span className={`absolute -top-0.5 -right-0.5 text-xs leading-none ${user?.membership?.status === "active" ? "text-emerald-500" : "text-amber-500"}`}>
                   {user?.membership?.status === "active" ? "✅" : "⏳"}
                 </span>
-              )}
-            </div>
-          </Dropdown>
+              </div>
+            </Dropdown>
+          </div>
+          <div className="md:hidden">
+            <button className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
+            </button>
+          </div>
         </div>
-        <div className="md:hidden">
-          <Button type="default" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
-          </Button>
-        </div>
+        {menuOpen && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4 flex flex-col items-center gap-3">
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+            <button className="w-full text-sm text-rose-600 py-2" onClick={logoutHandler}>🚪 Logout</button>
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+          </motion.div>
+        )}
       </nav>
 
-      {menuOpen && (
-        <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {user?.membership?.status === "active" ? (
-            <Button
-              type="default"
-              onClick={() => history(`/user-classes/${user?.firstName}`)}
-            >
-              Classes
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              onClick={() => history(`/user-enroll/${user?.firstName}`)}
-            >
-              Enroll
-            </Button>
-          )}
-          <Button
-            type="default"
-            onClick={() => history(`/user-profile/${user?.firstName}`)}
-          >
-            Profile
-          </Button>
-          <Button
-            type="default"
-            onClick={() => history(`/user-payments/${user?.firstName}`)}
-          >
-            Payments
-          </Button>
-          <Button type="default" onClick={logoutHandler}>
-            Logout
-          </Button>
-          <Switch
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-          />
-        </div>
-      )}
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center pt-24 pb-16 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-lg"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
 
-      <div className="flex justify-center items-center min-h-screen pt-20 pb-10">
-        <Card className="w-full sm:max-w-md lg:max-w-lg shadow-lg rounded-lg bg-white dark:bg-gray-800 p-8">
-          <div className="text-center mb-6">
-            {/* Profile Photo with Upload */}
-            <div className="relative inline-block mb-4">
-              <Avatar
-                size={110}
-                className="bg-blue-500"
-                src={user?.profilePhoto || undefined}
-              >
-                {!user?.profilePhoto &&
-                  user?.firstName?.charAt(0).toUpperCase()}
-              </Avatar>
-              <Upload
-                beforeUpload={handlePhotoUpload}
-                showUploadList={false}
-                accept="image/*"
-              >
-                <Button
-                  size="small"
-                  shape="circle"
-                  icon={
-                    uploadingPhoto ? <LoadingOutlined /> : <CameraOutlined />
-                  }
-                  className="absolute bottom-0 right-0"
-                  loading={uploadingPhoto}
-                />
-              </Upload>
+            {/* Cover banner */}
+            <div className="h-28 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative overflow-hidden">
+              <div className="blob w-32 h-32 bg-white/10 top-0 right-10" />
+              <div className="blob w-24 h-24 bg-white/10 bottom-0 left-20" style={{ animationDelay: "-2s" }} />
             </div>
 
-            <h2 className="text-2xl font-semibold dark:text-white">{`${user?.firstName} ${user?.lastName}`}</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Student ID: <strong>{user?.studentId}</strong>
-            </p>
-            <p className="text-sm mt-1">
-              Status:{" "}
-              <span
-                className={
-                  user?.membership?.status === "active"
-                    ? "text-green-600 font-semibold"
-                    : "text-yellow-600 font-semibold"
-                }
-              >
-                {user?.membership?.status === "active"
-                  ? "Active ✅"
-                  : "Pending ⌛"}
-              </span>
-            </p>
-            <p className="text-sm text-gray-500">Email: {user?.email}</p>
-            <p className="text-sm text-gray-500">Grade: {user?.grade}</p>
-            <p className="text-sm text-gray-500">
-              Phone: {user?.telephoneNumber}
-            </p>
-
-            {user?.membership?.paidMonths?.length > 0 && (
-              <div className="mt-3">
-                <p className="text-xs text-gray-400 mb-1">Paid Months</p>
-                <div className="flex flex-wrap gap-1 justify-center">
-                  {user.membership.paidMonths.map((pm, i) => (
-                    <span
-                      key={i}
-                      className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full"
-                    >
-                      {pm.month}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {user?.membership?.status === "active" && (
-              <Button
-                type="primary"
-                className="w-full"
-                onClick={() => history(`/user-classes/${user?.firstName}`)}
-              >
-                View My Classes
-              </Button>
-            )}
-            {user?.membership?.status !== "active" && (
-              <Button
-                type="default"
-                className="w-full"
-                onClick={() => history(`/user-enroll/${user?.firstName}`)}
-              >
-                Enroll / Pay
-              </Button>
-            )}
-
-            {editing ? (
-              <Form form={form} onFinish={handleSave} layout="vertical">
-                <Form.Item
-                  label="First Name"
-                  name="firstName"
-                  rules={[{ required: true }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Last Name"
-                  name="lastName"
-                  rules={[{ required: true }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[{ required: true, type: "email" }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Grade"
-                  name="grade"
-                  rules={[{ required: true }]}
-                >
-                  <Select placeholder="Select Grade">
-                    {GRADES.map((grade) => (
-                      <Option key={grade} value={grade}>
-                        {grade}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item
-                  label="Phone"
-                  name="telephoneNumber"
-                  rules={[{ required: true }]}
-                >
-                  <Input />
-                </Form.Item>
-                <div className="flex gap-2">
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    disabled={loading}
+            {/* Profile photo */}
+            <div className="px-6 pb-4">
+              <div className="flex items-end gap-4 -mt-14 mb-4">
+                <div className="relative flex-shrink-0">
+                  <Avatar
+                    size={96}
+                    className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-bold text-3xl ring-4 ring-white dark:ring-slate-800"
+                    src={user?.profilePhoto || undefined}
                   >
-                    {loading ? (
-                      <Spin indicator={<LoadingOutlined />} />
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </Button>
-                  <Button block onClick={() => setEditing(false)}>
-                    Cancel
-                  </Button>
+                    {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Upload beforeUpload={handlePhotoUpload} showUploadList={false} accept="image/*">
+                    <button
+                      type="button"
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg hover:from-indigo-400 hover:to-violet-400 transition-colors"
+                    >
+                      {uploadingPhoto ? <LoadingOutlined /> : <CameraOutlined />}
+                    </button>
+                  </Upload>
                 </div>
-              </Form>
-            ) : (
-              <div className="space-y-2">
-                <Button type="primary" className="w-full" onClick={handleEdit}>
-                  Edit Profile
-                </Button>
-                <Button
-                  type="primary"
-                  danger
-                  className="w-full"
-                  onClick={handleDeleteAccount}
-                >
-                  Delete Account
-                </Button>
+                <div className="mb-2">
+                  <h2 className="font-poppins font-bold text-xl text-slate-900 dark:text-white">{`${user?.firstName} ${user?.lastName}`}</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs">{user?.studentId}</p>
+                </div>
+                <div className="mb-2 ml-auto">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                    user?.membership?.status === "active"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
+                      : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                  }`}>
+                    {user?.membership?.status === "active" ? "✅ Active" : "⏳ Pending"}
+                  </span>
+                </div>
               </div>
-            )}
+
+              {/* Info grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { label: "Email", value: user?.email, icon: "📧" },
+                  { label: "Phone", value: user?.telephoneNumber, icon: "📞" },
+                  { label: "Grade", value: user?.grade, icon: "🎓" },
+                  { label: "Student ID", value: user?.studentId, icon: "🪪" },
+                ].map(({ label, value, icon }) => (
+                  <div key={label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+                      <span>{icon}</span>
+                      <span>{label}</span>
+                    </div>
+                    <p className="text-slate-800 dark:text-white text-sm font-medium truncate">{value || "—"}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Paid months */}
+              {user?.membership?.paidMonths?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mb-2">Paid Months</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {user.membership.paidMonths.map((pm, i) => (
+                      <span key={i} className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                        ✓ {pm.month}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="space-y-3">
+                {user?.membership?.status === "active" ? (
+                  <button className="btn-primary w-full text-sm py-3" onClick={() => history(`/user-classes/${user?.firstName}`)}>
+                    📚 View My Classes
+                  </button>
+                ) : (
+                  <button className="btn-outline w-full text-sm py-3" onClick={() => history(`/user-enroll/${user?.firstName}`)}>
+                    🎓 Enroll / Pay
+                  </button>
+                )}
+
+                {editing ? (
+                  <Form form={form} onFinish={handleSave} layout="vertical">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Form.Item label={<span className="text-xs text-slate-600 dark:text-slate-400">First Name</span>} name="firstName" rules={[{ required: true }]}>
+                        <Input className="rounded-xl" />
+                      </Form.Item>
+                      <Form.Item label={<span className="text-xs text-slate-600 dark:text-slate-400">Last Name</span>} name="lastName" rules={[{ required: true }]}>
+                        <Input className="rounded-xl" />
+                      </Form.Item>
+                    </div>
+                    <Form.Item label={<span className="text-xs text-slate-600 dark:text-slate-400">Email</span>} name="email" rules={[{ required: true, type: "email" }]}>
+                      <Input className="rounded-xl" />
+                    </Form.Item>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Form.Item label={<span className="text-xs text-slate-600 dark:text-slate-400">Grade</span>} name="grade" rules={[{ required: true }]}>
+                        <Select placeholder="Select Grade" className="rounded-xl">
+                          {GRADES.map((g) => <Option key={g} value={g}>{g}</Option>)}
+                        </Select>
+                      </Form.Item>
+                      <Form.Item label={<span className="text-xs text-slate-600 dark:text-slate-400">Phone</span>} name="telephoneNumber" rules={[{ required: true }]}>
+                        <Input className="rounded-xl" />
+                      </Form.Item>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold rounded-xl text-sm disabled:opacity-60"
+                      >
+                        {loading ? "Saving..." : "Save Changes"}
+                      </button>
+                      <button type="button" className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-sm" onClick={() => setEditing(false)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </Form>
+                ) : (
+                  <div className="flex gap-2">
+                    <button className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onClick={handleEdit}>
+                      ✏️ Edit Profile
+                    </button>
+                    <button className="flex-1 py-2.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-semibold rounded-xl text-sm hover:bg-rose-100 dark:hover:bg-rose-900/30 border border-rose-200 dark:border-rose-700 transition-colors" onClick={handleDeleteAccount}>
+                      🗑️ Delete Account
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </Card>
+        </motion.div>
       </div>
 
-      <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-slate-900 to-slate-950 text-white py-10 px-4 md:px-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6">
           <div>
-            <h4 className="font-bold text-lg">About</h4>
-            <p className="text-sm mt-2">
-              An innovative learning platform for students worldwide.
-            </p>
+            <div className="font-poppins font-bold gradient-text mb-1">Devians LMS</div>
+            <p className="text-slate-400 text-sm">Premier English Learning Platform</p>
           </div>
-          <div>
-            <h4 className="font-bold text-lg">Quick Links</h4>
-            <ul className="text-sm mt-2">
-              <li>Courses</li>
-              <li>Pricing</li>
-              <li>Blog</li>
-              <li>Help Center</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">Contact</h4>
-            <p className="text-sm mt-2">Email: support@lms.com</p>
-            <p className="text-sm">Phone: +123 456 7890</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">
-              ©️ Copyrights - All rights reserved
-            </h4>
-            <h6 className="font-bold text-lg sm:py-4">
-              2025 Devians LMS Platform 🏛️
-            </h6>
+          <div className="text-slate-400 text-sm">
+            <p>📧 support@devians.lms</p>
+            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

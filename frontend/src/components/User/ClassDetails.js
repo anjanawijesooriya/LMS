@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  Button,
-  Switch,
-  Spin,
-  Dropdown,
-  Avatar,
-  Card,
-  Tag,
-  Tooltip,
-} from "antd";
+import { Switch, Dropdown, Avatar, Tooltip } from "antd";
 import {
   CloseOutlined,
   MenuOutlined,
@@ -17,6 +8,7 @@ import {
   StopOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 
@@ -26,37 +18,58 @@ import { logoutUser } from "../../redux/features/auth/authActions";
 import { fetchClasses } from "../../redux/features/classes/classActions";
 
 const getClassStatus = (classDate, classTime, isCancelled) => {
-  if (isCancelled) return { label: "Cancelled", color: "error" };
+  if (isCancelled) return { label: "Cancelled", color: "cancelled" };
   const classDateTime = moment(
     `${moment(classDate).format("YYYY-MM-DD")} ${classTime}`,
-    "YYYY-MM-DD HH:mm",
+    "YYYY-MM-DD HH:mm"
   );
   const now = moment();
   const diffMins = classDateTime.diff(now, "minutes");
-  if (diffMins > 15) return { label: "Upcoming", color: "processing" };
-  if (diffMins >= -90 && diffMins <= 15) return { label: "Live Now 🔴", color: "success" };
-  return { label: "Ended", color: "default" };
+  if (diffMins > 15) return { label: "Upcoming", color: "upcoming" };
+  if (diffMins >= -90 && diffMins <= 15) return { label: "Live Now", color: "live" };
+  return { label: "Ended", color: "ended" };
 };
 
 const canJoinClass = (classDate, classTime, isCancelled) => {
   if (isCancelled) return false;
   const classDateTime = moment(
     `${moment(classDate).format("YYYY-MM-DD")} ${classTime}`,
-    "YYYY-MM-DD HH:mm",
+    "YYYY-MM-DD HH:mm"
   );
   const now = moment();
   const diffMins = classDateTime.diff(now, "minutes");
   return diffMins <= 15 && diffMins >= -90;
 };
 
+const statusConfig = {
+  live: {
+    bar: "bg-gradient-to-r from-emerald-500 to-teal-500",
+    badge: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300",
+    dot: "bg-emerald-500 animate-ping",
+  },
+  upcoming: {
+    bar: "bg-gradient-to-r from-indigo-500 to-violet-500",
+    badge: "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300",
+    dot: null,
+  },
+  ended: {
+    bar: "bg-gradient-to-r from-slate-400 to-slate-500",
+    badge: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400",
+    dot: null,
+  },
+  cancelled: {
+    bar: "bg-gradient-to-r from-rose-500 to-red-600",
+    badge: "bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300",
+    dot: null,
+  },
+};
+
 const ClassDetails = () => {
   const [loader, setLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark",
-  );
+  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
   const [filteredData, setFilteredData] = useState([]);
-  const [now, setNow] = useState(moment());
+  const [, setNow] = useState(moment());
 
   const history = useNavigate();
   const dispatch = useDispatch();
@@ -64,11 +77,10 @@ const ClassDetails = () => {
   const { classes } = useSelector(selectClassState);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoader(false), 1500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(t);
   }, []);
 
-  // Refresh the clock every minute to update Join button state
   useEffect(() => {
     const interval = setInterval(() => setNow(moment()), 60 * 1000);
     return () => clearInterval(interval);
@@ -99,16 +111,15 @@ const ClassDetails = () => {
 
   const filterByGradeAndPayment = () => {
     if (!classes || !user) return;
-    const formattedClasses = classes.map((item) => ({
+    const formatted = classes.map((item) => ({
       ...item,
       classDateForFilter: moment(item.classDate).format("MMMM-YYYY"),
     }));
-    const paidMonths =
-      user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
-    const filtered = formattedClasses.filter(
+    const paidMonths = user?.membership?.paidMonths?.map((pm) => pm.month.trim()) || [];
+    const filtered = formatted.filter(
       (item) =>
         item.classGrade === user.grade &&
-        paidMonths.includes(item.classDateForFilter),
+        paidMonths.includes(item.classDateForFilter)
     );
     setFilteredData(filtered);
   };
@@ -122,236 +133,207 @@ const ClassDetails = () => {
     }, {});
 
   const profileMenu = (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <Button
-        type="default"
-        block
-        className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${user?.firstName}`)}
-      >
-        Profile
-      </Button>
-      <Button
-        type="default"
-        block
-        className="mb-2"
-        onClick={() => history(`/user-payments/${user?.firstName}`)}
-      >
-        Payments
-      </Button>
-      <Button type="default" block onClick={logoutHandler}>
-        Logout
-      </Button>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+      <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-medium" onClick={logoutHandler}>🚪 Logout</button>
     </div>
   );
 
-  return loader ? (
-    <center className="mt-80">
-      <Spin size="large" />
-    </center>
-  ) : (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  if (loader) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-poppins text-slate-500 dark:text-slate-400 font-medium">Loading classes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const grouped = groupClassesByYear();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+
       {/* Navbar */}
-      <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1
-          className="text-xl font-bold cursor-pointer"
-          onClick={() => history(`/user-dashboard/${user?.firstName}`)}
-        >
-          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
-        </h1>
-        <div className="hidden md:flex gap-4">
-          <Button
-            type={user?.membership?.status === "active" ? "default" : "primary"}
-            className="!h-10 flex items-center justify-center"
-          >
-            {user?.membership?.status === "active" ? "Classes" : "Enroll"}
-          </Button>
-          <Dropdown
-            overlay={profileMenu}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <div className="relative cursor-pointer">
-              <Avatar
-                className="bg-blue-500"
-                size={40}
-                src={user?.profilePhoto || undefined}
-              >
-                {!user?.profilePhoto &&
-                  user?.firstName?.charAt(0).toUpperCase()}
-              </Avatar>
-              {user?.membership?.status && (
-                <span
-                  className={`absolute top-0 right-0 text-sm ${user?.membership?.status === "active" ? "text-green-500" : "text-yellow-500"}`}
-                >
+      <nav className="fixed top-0 w-full glass-nav z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
+          <h1 className="font-poppins text-xl font-bold gradient-text cursor-pointer" onClick={() => history(`/user-dashboard/${user?.firstName}`)}>
+            Devians ✦ LMS
+          </h1>
+          <div className="hidden md:flex items-center gap-3">
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+            <button className="text-sm font-medium px-5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700">
+              📚 Classes
+            </button>
+            <Dropdown overlay={profileMenu} trigger={["click"]} placement="bottomRight">
+              <div className="relative cursor-pointer">
+                <Avatar className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold" size={40} src={user?.profilePhoto || undefined}>
+                  {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                </Avatar>
+                <span className={`absolute -top-0.5 -right-0.5 text-xs leading-none ${user?.membership?.status === "active" ? "text-emerald-500" : "text-amber-500"}`}>
                   {user?.membership?.status === "active" ? "✅" : "⏳"}
                 </span>
-              )}
-            </div>
-          </Dropdown>
+              </div>
+            </Dropdown>
+          </div>
+          <div className="md:hidden">
+            <button className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
+            </button>
+          </div>
         </div>
-        <div className="md:hidden">
-          <Button type="default" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
-          </Button>
-        </div>
+        {menuOpen && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4 flex flex-col items-center gap-3">
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+            <button className="w-full text-sm text-rose-600 py-2" onClick={logoutHandler}>🚪 Logout</button>
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+          </motion.div>
+        )}
       </nav>
 
-      {menuOpen && (
-        <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {user?.membership?.status === "active" ? (
-            <Button type="default">Classes</Button>
-          ) : (
-            <Button type="primary">Enroll</Button>
-          )}
-          <Button
-            type="default"
-            onClick={() => history(`/user-profile/${user?.firstName}`)}
-          >
-            Profile
-          </Button>
-          <Button
-            type="default"
-            onClick={() => history(`/user-payments/${user?.firstName}`)}
-          >
-            Payments
-          </Button>
-          <Button type="default" onClick={logoutHandler}>
-            Logout
-          </Button>
-          <Switch
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-          />
+      {/* Page header */}
+      <div className="pt-24 pb-6 px-4 md:px-8 max-w-7xl mx-auto w-full">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <h1 className="font-poppins text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+            Your Classes
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            Grade <strong className="text-indigo-600 dark:text-indigo-400">{user?.grade}</strong> — Join button activates 15 min before class
+          </p>
+        </motion.div>
+      </div>
+
+      {Object.keys(grouped).length === 0 ? (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center max-w-sm">
+            <div className="text-6xl mb-4">📭</div>
+            <h3 className="font-poppins font-semibold text-xl text-slate-700 dark:text-slate-300 mb-2">No classes found</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Check that your payment has been approved and classes have been scheduled for your grade.</p>
+            <button className="btn-primary mt-5 text-sm" onClick={() => history(`/user-enroll/${user?.firstName}`)}>Submit Payment</button>
+          </div>
         </div>
-      )}
-
-      <h1 className="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white mt-24">
-        Your Classes
-      </h1>
-      <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">
-        Grade: <strong>{user?.grade}</strong> — Join button activates 15 min
-        before class
-      </p>
-
-      {Object.keys(groupClassesByYear()).length === 0 ? (
-        <p className="text-center text-gray-600 dark:text-gray-300 text-lg mt-10">
-          No classes available. Check if your payment has been approved.
-        </p>
       ) : (
-        <div className="container mx-auto px-4 py-4">
-          {Object.keys(groupClassesByYear())
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pb-16 w-full">
+          {Object.keys(grouped)
             .sort((a, b) => b - a)
             .map((year) => (
-              <div key={year}>
-                <h2 className="text-2xl font-bold text-center mt-6 mb-4 text-gray-900 dark:text-white">
-                  {year}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {groupClassesByYear()[year].map((classItem) => {
-                    const status = getClassStatus(
-                      classItem.classDate,
-                      classItem.classTime,
-                      classItem.isCancelled,
-                    );
-                    const joinable = canJoinClass(
-                      classItem.classDate,
-                      classItem.classTime,
-                      classItem.isCancelled,
-                    );
+              <div key={year} className="mb-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                  <span className="font-poppins font-bold text-lg text-slate-600 dark:text-slate-400">{year}</span>
+                  <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                  {grouped[year].map((classItem, i) => {
+                    const status = getClassStatus(classItem.classDate, classItem.classTime, classItem.isCancelled);
+                    const joinable = canJoinClass(classItem.classDate, classItem.classTime, classItem.isCancelled);
+                    const cfg = statusConfig[status.color];
 
                     return (
-                      <Card
+                      <motion.div
                         key={classItem._id}
-                        hoverable={!classItem.isCancelled}
-                        className={`rounded-xl overflow-hidden shadow-lg border ${classItem.isCancelled ? "border-red-300 opacity-70" : "border-gray-200"} bg-white dark:bg-gray-800`}
-                        cover={
-                          <div className="relative">
-                            <img
-                              alt={classItem.className}
-                              src="https://t3.ftcdn.net/jpg/02/27/26/82/360_F_227268299_liM3oGuQApMjXf23x7rSeFJxLgV6bMcC.jpg"
-                              className="h-40 w-full object-cover"
-                            />
-                            <div className="absolute top-2 right-2">
-                              <Tag color={status.color}>{status.label}</Tag>
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${!classItem.isCancelled ? "hover:-translate-y-1" : "opacity-75"} border border-slate-200/50 dark:border-slate-700/50`}
+                      >
+                        {/* Status color bar */}
+                        <div className={`h-1.5 ${cfg.bar}`} />
+
+                        {/* Class image */}
+                        <div className="relative h-36 overflow-hidden">
+                          <img
+                            src="https://t3.ftcdn.net/jpg/02/27/26/82/360_F_227268299_liM3oGuQApMjXf23x7rSeFJxLgV6bMcC.jpg"
+                            alt={classItem.className}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                          {/* Status badge */}
+                          <div className="absolute top-3 right-3">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.badge} backdrop-blur-sm`}>
+                              {status.color === "live" && (
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                </span>
+                              )}
+                              {status.label}
+                            </span>
+                          </div>
+
+                          {/* Class name overlay */}
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <h3 className="font-poppins font-bold text-white text-sm truncate">{classItem.className}</h3>
+                          </div>
+                        </div>
+
+                        {/* Card body */}
+                        <div className="p-4">
+                          {classItem.description && (
+                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-3 line-clamp-2">{classItem.description}</p>
+                          )}
+
+                          <div className="space-y-1.5 mb-4">
+                            <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                              <span>📅</span>
+                              <span>{moment(classItem.classDate).format("DD MMM YYYY")}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                              <span>🕐</span>
+                              <span>{classItem.classTime ? moment(classItem.classTime, "HH:mm").format("hh:mm A") : "N/A"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                              <span>🎓</span>
+                              <span>{classItem.classGrade}</span>
                             </div>
                           </div>
-                        }
-                      >
-                        <div className="p-1">
-                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                            {classItem.className}
-                          </h2>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                            {classItem.description}
-                          </p>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mt-2">
-                            📅{" "}
-                            {moment(classItem.classDate).format("DD MMM YYYY")}
-                          </p>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm">
-                            🕐{" "}
-                            {classItem.classTime
-                              ? moment(classItem.classTime, "HH:mm").format(
-                                  "hh:mm A",
-                                )
-                              : "N/A"}
-                          </p>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm">
-                            🎓 {classItem.classGrade}
-                          </p>
 
                           {classItem.notes && (
-                            <div className="mt-2 p-2 bg-blue-50 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
-                              <FileTextOutlined className="mr-1" />
-                              {classItem.notes}
+                            <div className="mb-3 p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-xs text-indigo-700 dark:text-indigo-300 flex gap-2">
+                              <FileTextOutlined className="mt-0.5 flex-shrink-0" />
+                              <span>{classItem.notes}</span>
                             </div>
                           )}
 
                           {classItem.isCancelled && (
-                            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900 rounded text-xs text-red-700 dark:text-red-300">
-                              <StopOutlined className="mr-1" />
-                              <strong>Cancelled</strong>
-                              {classItem.cancellationReason &&
-                                `: ${classItem.cancellationReason}`}
+                            <div className="mb-3 p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex gap-2">
+                              <StopOutlined className="mt-0.5 flex-shrink-0" />
+                              <span><strong>Cancelled</strong>{classItem.cancellationReason ? `: ${classItem.cancellationReason}` : ""}</span>
                             </div>
                           )}
 
-                          <div className="flex justify-between items-center mt-4">
-                            <Tooltip
-                              title={
+                          <Tooltip
+                            title={
+                              classItem.isCancelled
+                                ? "This class has been cancelled"
+                                : !joinable
+                                ? "Join button activates 15 minutes before class"
+                                : "Click to join the live class"
+                            }
+                          >
+                            <button
+                              disabled={!joinable}
+                              onClick={() => window.open(classItem.classLink, "_blank", "noopener,noreferrer")}
+                              className={`w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
                                 classItem.isCancelled
-                                  ? "This class has been cancelled"
-                                  : !joinable
-                                    ? "Join button activates 15 minutes before class"
-                                    : "Click to join the class"
-                              }
-                            >
-                              <Button
-                                type="primary"
-                                icon={<VideoCameraOutlined />}
-                                disabled={!joinable}
-                                onClick={() =>
-                                  window.open(
-                                    classItem.classLink,
-                                    "_blank",
-                                    "noopener,noreferrer",
-                                  )
-                                }
-                                className={joinable ? "animate-pulse" : ""}
-                              >
-                                {classItem.isCancelled
-                                  ? "Cancelled"
+                                  ? "bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
                                   : joinable
-                                    ? "Join Now!"
-                                    : "Join Class"}
-                              </Button>
-                            </Tooltip>
-                          </div>
+                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-emerald-500/30 hover:-translate-y-0.5 animate-pulse-glow"
+                                  : "bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
+                              }`}
+                            >
+                              <VideoCameraOutlined />
+                              {classItem.isCancelled ? "Cancelled" : joinable ? "Join Now!" : "Join Class"}
+                            </button>
+                          </Tooltip>
                         </div>
-                      </Card>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -360,35 +342,16 @@ const ClassDetails = () => {
         </div>
       )}
 
-      <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-slate-900 to-slate-950 text-white py-10 px-4 md:px-8 mt-auto border-t border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6">
           <div>
-            <h4 className="font-bold text-lg">About</h4>
-            <p className="text-sm mt-2">
-              An innovative learning platform for students worldwide.
-            </p>
+            <div className="font-poppins font-bold gradient-text mb-1">Devians LMS</div>
+            <p className="text-slate-400 text-sm">Premier English Learning Platform</p>
           </div>
-          <div>
-            <h4 className="font-bold text-lg">Quick Links</h4>
-            <ul className="text-sm mt-2">
-              <li>Courses</li>
-              <li>Pricing</li>
-              <li>Blog</li>
-              <li>Help Center</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">Contact</h4>
-            <p className="text-sm mt-2">Email: support@lms.com</p>
-            <p className="text-sm">Phone: +123 456 7890</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">
-              ©️ Copyrights - All rights reserved
-            </h4>
-            <h6 className="font-bold text-lg sm:py-4">
-              2025 Devians LMS Platform 🏛️
-            </h6>
+          <div className="text-slate-400 text-sm">
+            <p>📧 support@devians.lms</p>
+            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

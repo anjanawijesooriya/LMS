@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Card, Switch, Spin, Dropdown, Avatar } from "antd";
+import { Switch, Dropdown, Avatar } from "antd";
 import { CloseOutlined, MenuOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,15 +19,14 @@ const FeaturedCourseDetails = () => {
 
   const history = useNavigate();
   const dispatch = useDispatch();
-
   const { featuredCourse } = useSelector(selectFeaturedCourses);
   const { isAuthenticated, user } = useSelector(selectAuthState);
+  const { id } = useParams();
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoader(false);
-    }, 3000);
-  });
+    const t = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -39,13 +38,8 @@ const FeaturedCourseDetails = () => {
     }
   }, [darkMode]);
 
-  const { id } = useParams();
-
   useEffect(() => {
-    console.log(id);
-    if (id) {
-      dispatch(getFeaturedCourse(id));
-    }
+    if (id) dispatch(getFeaturedCourse(id));
   }, [dispatch, id]);
 
   const logoutHandler = () => {
@@ -54,231 +48,235 @@ const FeaturedCourseDetails = () => {
   };
 
   const profileMenu = (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <div className="relative flex justify-center"></div>
-      <Button
-        type="default"
-        block
-        className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${user?.firstName}`)}
-      >
-        Profile
-      </Button>
-      <Button
-        type="default"
-        block
-        className="mb-2"
-        onClick={() => history(`/user-payments/${user?.firstName}`)}
-      >
-        Payments
-      </Button>
-      <Button type="default" block onClick={logoutHandler}>
-        Logout
-      </Button>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-profile/${user?.firstName}`)}>
+        👤 Profile
+      </button>
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-payments/${user?.firstName}`)}>
+        💳 Payments
+      </button>
+      <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-medium" onClick={logoutHandler}>
+        🚪 Logout
+      </button>
     </div>
   );
 
-  return loader ? (
-    <center className="mt-80">
-      <Spin size="large" />
-    </center>
-  ) : (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1 className="text-xl font-bold">
-          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
-        </h1>
-        {/* Desktop Menu */}
-        {isAuthenticated ? (
-          <div className="hidden md:flex gap-4">
-            <Button
-              type={
-                user?.membership?.status === "active" ? "default" : "primary"
-              }
-              className="!h-10 flex items-center justify-center"
-              onClick={() =>
-                user?.membership?.status === "active"
-                  ? history(`/user-classes/${user?.firstName}`)
-                  : history(`/user-enroll/${user?.firstName}`)
-              }
-            >
-              {user?.membership?.status === "active" ? "Classes" : "Enroll"}
-            </Button>
-            {/* Profile Dropdown */}
-            <Dropdown
-              overlay={profileMenu}
-              trigger={["click"]}
-              placement="bottomRight"
-            >
-              <div className="relative cursor-pointer">
-                <Avatar className="bg-blue-500" size={40}>
-                  {user?.firstName?.charAt(0).toUpperCase()}
-                </Avatar>
-                {user?.membership?.status && (
-                  <span
-                    className={`absolute top-0 right-0 text-sm ${
-                      user?.membership.status === "active"
-                        ? "text-green-500"
-                        : "text-yellow-500"
-                    }`}
-                  >
-                    {user?.membership?.status === "active" ? "✅" : "⏳"}
-                  </span>
-                )}
-              </div>
-            </Dropdown>
-          </div>
-        ) : (
-          <div className="hidden md:flex gap-4">
-            <Button type="default" onClick={() => history("/login")}>
-              Login
-            </Button>
-            <Button type="primary" onClick={() => history("/register")}>
-              Sign Up
-            </Button>
-          </div>
-        )}
-
-        {/* Mobile & Medium Menu Toggle */}
-        <div className="md:hidden">
-          <Button type="default" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
-          </Button>
+  if (loader) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-poppins text-slate-500 dark:text-slate-400 font-medium">Loading...</p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+
+      {/* Navbar */}
+      <nav className="fixed top-0 w-full glass-nav z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
+          <h1
+            className="font-poppins text-xl font-bold gradient-text cursor-pointer select-none"
+            onClick={() => isAuthenticated ? history(`/user-dashboard/${user?.firstName}`) : history("/")}
+          >
+            Devians ✦ LMS
+          </h1>
+
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-3">
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+            {isAuthenticated ? (
+              <>
+                <button
+                  className={`text-sm font-medium px-5 py-2 rounded-xl transition-all duration-300 ${
+                    user?.membership?.status === "active"
+                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700"
+                      : "btn-primary"
+                  }`}
+                  onClick={() =>
+                    user?.membership?.status === "active"
+                      ? history(`/user-classes/${user?.firstName}`)
+                      : history(`/user-enroll/${user?.firstName}`)
+                  }
+                >
+                  {user?.membership?.status === "active" ? "📚 Classes" : "🎓 Enroll"}
+                </button>
+                <Dropdown overlay={profileMenu} trigger={["click"]} placement="bottomRight">
+                  <div className="relative cursor-pointer">
+                    <Avatar
+                      className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold"
+                      size={40}
+                      src={user?.profilePhoto || undefined}
+                    >
+                      {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <span className={`absolute -top-0.5 -right-0.5 text-xs leading-none ${user?.membership?.status === "active" ? "text-emerald-500" : "text-amber-500"}`}>
+                      {user?.membership?.status === "active" ? "✅" : "⏳"}
+                    </span>
+                  </div>
+                </Dropdown>
+              </>
+            ) : (
+              <>
+                <button className="btn-outline text-sm" onClick={() => history("/login")}>Login</button>
+                <button className="btn-primary text-sm" onClick={() => history("/register")}>Sign Up</button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile toggle */}
+          <div className="md:hidden">
+            <button
+              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
+            </button>
+          </div>
+        </div>
+
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4 flex flex-col items-center gap-3"
+          >
+            {isAuthenticated ? (
+              <>
+                {user?.membership?.status === "active" ? (
+                  <button className="w-full text-sm font-medium px-5 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200" onClick={() => history(`/user-classes/${user?.firstName}`)}>📚 Classes</button>
+                ) : (
+                  <button className="btn-primary w-full text-sm" onClick={() => history(`/user-enroll/${user?.firstName}`)}>🎓 Enroll</button>
+                )}
+                <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+                <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+                <button className="w-full text-sm text-rose-600 py-2" onClick={logoutHandler}>🚪 Logout</button>
+              </>
+            ) : (
+              <>
+                <button className="btn-outline w-full text-sm" onClick={() => history("/login")}>Login</button>
+                <button className="btn-primary w-full text-sm" onClick={() => history("/register")}>Sign Up</button>
+              </>
+            )}
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+          </motion.div>
+        )}
       </nav>
 
-      {/* Responsive Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {isAuthenticated ? (
-            <>
-              {user?.membership?.status === "active" ? (
-                <Button
-                  type="default"
-                  onClick={() => history(`/user-classes/${user?.firstName}`)}
-                >
-                  Classes
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={() => history(`/user-enroll/${user?.firstName}`)}
-                >
-                  Enroll
-                </Button>
-              )}
-              {/* Profile Dropdown */}
-              <Button
-                type="default"
-                onClick={() => history(`/user-profile/${user?.firstName}`)}
-              >
-                Profile
-              </Button>
-              <Button
-                type="default"
-                onClick={() => history(`/user-payments/${user?.firstName}`)}
-              >
-                Payments
-              </Button>
-              <Button type="default" onClick={logoutHandler}>
-                Logout
-              </Button>
-              <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                checkedChildren="🌙"
-                unCheckedChildren="☀️"
-              />
-            </>
-          ) : (
-            <>
-              <Button type="default" onClick={() => history("/login")}>
-                Login
-              </Button>
-              <Button type="primary" onClick={() => history("/register")}>
-                Sign Up
-              </Button>
-              <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                checkedChildren="🌙"
-                unCheckedChildren="☀️"
-              />
-            </>
-          )}
-        </div>
-      )}
-
       {/* Content */}
-      <div className="flex flex-col items-center justify-center mt-24 px-4">
-        <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="text-3xl font-bold mb-6"
-        >
-          Course Details
-        </motion.h2>
+      <div className="flex-1 flex flex-col items-center pt-28 pb-16 px-4">
+
+        {/* Breadcrumb */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-3xl mb-6"
         >
-          <Card
-            hoverable
-            className="w-full max-w-md md:max-w-xl lg:max-w-2xl shadow-lg rounded-xl bg-white dark:bg-gray-800 p-6"
-            cover={
-              <img
-                alt={featuredCourse?.courseName}
-                src={featuredCourse?.courseImage}
-                className="rounded-t-xl object-cover w-full h-56"
-              />
-            }
+          <button
+            className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            onClick={() => history(-1)}
           >
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              {featuredCourse?.courseName}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
-              {featuredCourse?.description}
-            </p>
-            <p className="text-gray-700 dark:text-gray-400 mt-2 font-medium">
-              Instructor: {featuredCourse?.instructor}
-            </p>
-          </Card>
+            ← Back to Courses
+          </button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-3xl"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+            {/* Course image */}
+            {featuredCourse?.courseImage && (
+              <div className="relative h-64 md:h-80 overflow-hidden">
+                <img
+                  alt={featuredCourse?.courseName}
+                  src={featuredCourse?.courseImage}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-white text-xs font-medium mb-3">
+                    📚 English Course
+                  </span>
+                  <h2 className="font-poppins text-2xl md:text-3xl font-bold text-white">
+                    {featuredCourse?.courseName}
+                  </h2>
+                </div>
+              </div>
+            )}
+
+            {/* Course details */}
+            <div className="p-6 md:p-8">
+              {!featuredCourse?.courseImage && (
+                <h2 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  {featuredCourse?.courseName}
+                </h2>
+              )}
+
+              {/* Instructor badge */}
+              <div className="flex items-center gap-3 mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-700/50">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-full flex items-center justify-center text-white font-poppins font-bold text-lg flex-shrink-0">
+                  {featuredCourse?.instructor?.charAt(0) || "I"}
+                </div>
+                <div>
+                  <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium mb-0.5">Instructor</p>
+                  <p className="font-poppins font-semibold text-slate-900 dark:text-white">{featuredCourse?.instructor}</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-poppins font-semibold text-slate-900 dark:text-white mb-3">About This Course</h3>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+                  {featuredCourse?.description}
+                </p>
+              </div>
+
+              {/* CTA */}
+              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                {isAuthenticated ? (
+                  <button
+                    className="btn-primary w-full py-3.5 text-sm"
+                    onClick={() =>
+                      user?.membership?.status === "active"
+                        ? history(`/user-classes/${user?.firstName}`)
+                        : history(`/user-enroll/${user?.firstName}`)
+                    }
+                  >
+                    {user?.membership?.status === "active" ? "📚 Go to My Classes →" : "🎓 Enroll to Access →"}
+                  </button>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button className="btn-primary flex-1 py-3.5 text-sm" onClick={() => history("/register")}>
+                      Get Started Free →
+                    </button>
+                    <button className="btn-outline flex-1 py-3.5 text-sm" onClick={() => history("/login")}>
+                      Sign In
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <footer className="bg-gradient-to-br from-slate-900 to-slate-950 text-white py-10 px-4 md:px-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6">
           <div>
-            <h4 className="font-bold text-lg">About</h4>
-            <p className="text-sm mt-2">
-              An innovative learning platform for students worldwide.
-            </p>
+            <div className="font-poppins font-bold gradient-text mb-1">Devians LMS</div>
+            <p className="text-slate-400 text-sm">Premier English Learning Platform</p>
           </div>
-          <div>
-            <h4 className="font-bold text-lg">Quick Links</h4>
-            <ul className="text-sm mt-2">
-              <li>Courses</li>
-              <li>Pricing</li>
-              <li>Blog</li>
-              <li>Help Center</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">Contact</h4>
-            <p className="text-sm mt-2">Email: support@lms.com</p>
-            <p className="text-sm">Phone: +123 456 7890</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">
-              ©️ Copyrights - All rights reserved
-            </h4>
-            <h6 className="font-bold text-lg sm:py-4">
-              2025 Devians LMS Platform 🏛️
-            </h6>
+          <div className="text-slate-400 text-sm">
+            <p>📧 support@devians.lms</p>
+            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>

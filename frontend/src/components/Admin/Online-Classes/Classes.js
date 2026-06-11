@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Spin, Button, notification, Tag } from "antd";
+import { Table, Input, Button, notification, Tag } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
   StopOutlined,
+  SearchOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
 import axios from "axios";
@@ -15,8 +17,7 @@ const { Search } = Input;
 const getClassStatus = (classDate, classTime, isCancelled) => {
   if (isCancelled) return { label: "Cancelled", color: "red" };
   const classDateTime = moment(`${moment(classDate).format("YYYY-MM-DD")} ${classTime}`, "YYYY-MM-DD HH:mm");
-  const now = moment();
-  const diffMins = classDateTime.diff(now, "minutes");
+  const diffMins = classDateTime.diff(moment(), "minutes");
   if (diffMins > 15) return { label: "Upcoming", color: "blue" };
   if (diffMins >= -90 && diffMins <= 15) return { label: "Live Now", color: "green" };
   return { label: "Ended", color: "default" };
@@ -35,7 +36,7 @@ const Classes = ({ onUpdate }) => {
   const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoader(false), 1500);
+    const timer = setTimeout(() => setLoader(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -52,18 +53,21 @@ const Classes = ({ onUpdate }) => {
   useEffect(() => { fetchClasses(); }, []);
 
   const handleSearch = (value) => {
-    const filtered = data.filter((c) =>
-      c.className?.toLowerCase()?.includes(value?.toLowerCase()) ||
-      c.classGrade?.toLowerCase()?.includes(value?.toLowerCase())
+    setFilteredData(
+      data.filter(
+        (c) =>
+          c.className?.toLowerCase()?.includes(value?.toLowerCase()) ||
+          c.classGrade?.toLowerCase()?.includes(value?.toLowerCase())
+      )
     );
-    setFilteredData(filtered);
   };
 
-  const handleDeleteClick = (engClass) => {
+  const openModal = (engClass, { edit = false, add = false, cancel = false } = {}) => {
     setSelectedClass(engClass);
-    setIsEditMode(false);
-    setIsAddMode(false);
-    setIsCancelMode(false);
+    setIsEditMode(edit);
+    setIsAddMode(add);
+    setIsCancelMode(cancel);
+    setCancelReason("");
     setModalVisible(true);
   };
 
@@ -72,10 +76,10 @@ const Classes = ({ onUpdate }) => {
     setLoading(true);
     try {
       await axios.delete(`/classes/delete/${selectedClass._id}`);
-      notification.success({ message: "Success", description: `${selectedClass.className} deleted.` });
+      notification.success({ message: "Class deleted", description: `"${selectedClass.className}" deleted.` });
       await fetchClasses();
       onUpdate();
-    } catch (error) {
+    } catch {
       notification.error({ message: "Error deleting class" });
     } finally {
       setLoading(false);
@@ -84,25 +88,17 @@ const Classes = ({ onUpdate }) => {
     }
   };
 
-  const handleEditClick = (engClass) => {
-    setSelectedClass(engClass);
-    setIsEditMode(true);
-    setIsAddMode(false);
-    setIsCancelMode(false);
-    setModalVisible(true);
-  };
-
   const handleEditSubmit = async (updatedData) => {
     if (!selectedClass?._id) return;
     setLoading(true);
     try {
-      const response = await axios.put(`/classes/update/${selectedClass._id}`, updatedData);
-      if (response.data.success) {
+      const res = await axios.put(`/classes/update/${selectedClass._id}`, updatedData);
+      if (res.data.success) {
         await fetchClasses();
-        notification.success({ message: "Success", description: `${updatedData.className} updated.` });
+        notification.success({ message: "Class updated", description: `"${updatedData.className}" updated.` });
         onUpdate();
       }
-    } catch (error) {
+    } catch {
       notification.error({ message: "Error updating class" });
     } finally {
       setLoading(false);
@@ -111,52 +107,32 @@ const Classes = ({ onUpdate }) => {
     }
   };
 
-  const handleAddClick = () => {
-    setSelectedClass(null);
-    setIsEditMode(false);
-    setIsAddMode(true);
-    setIsCancelMode(false);
-    setModalVisible(true);
-  };
-
   const handleAddSubmit = async (newClassData) => {
     setLoading(true);
     try {
-      const response = await axios.post("/classes/add", newClassData);
-      if (response.data.success) {
+      const res = await axios.post("/classes/add", newClassData);
+      if (res.data.success) {
         await fetchClasses();
-        notification.success({ message: "Success", description: `"${newClassData.className}" added.` });
+        notification.success({ message: "Class added", description: `"${newClassData.className}" added.` });
         onUpdate();
       }
     } catch (error) {
-      const msg = error.response?.data?.error || "Error adding class.";
-      notification.error({ message: "Error", description: msg });
+      notification.error({ message: "Error", description: error.response?.data?.error || "Error adding class." });
     } finally {
       setLoading(false);
       setModalVisible(false);
     }
   };
 
-  const handleCancelClick = (engClass) => {
-    setSelectedClass(engClass);
-    setIsEditMode(false);
-    setIsAddMode(false);
-    setIsCancelMode(true);
-    setCancelReason("");
-    setModalVisible(true);
-  };
-
   const confirmCancel = async () => {
     if (!selectedClass?._id) return;
     setLoading(true);
     try {
-      const response = await axios.put(`/classes/cancel/${selectedClass._id}`, {
-        cancellationReason: cancelReason,
-      });
-      notification.success({ message: "Class cancelled", description: response.data.message });
+      const res = await axios.put(`/classes/cancel/${selectedClass._id}`, { cancellationReason: cancelReason });
+      notification.success({ message: "Class cancelled", description: res.data.message });
       await fetchClasses();
       onUpdate();
-    } catch (error) {
+    } catch {
       notification.error({ message: "Error cancelling class" });
     } finally {
       setLoading(false);
@@ -165,12 +141,13 @@ const Classes = ({ onUpdate }) => {
     }
   };
 
-  const handleConfirm = () => {
-    if (isEditMode) return handleEditSubmit;
-    if (isAddMode) return handleAddSubmit;
-    if (isCancelMode) return confirmCancel;
-    return confirmDelete;
-  };
+  const upcomingCount = filteredData.filter((c) => !c.isCancelled && new Date(c.classDate) > new Date()).length;
+  const liveCount = filteredData.filter((c) => {
+    if (c.isCancelled) return false;
+    const dt = moment(`${moment(c.classDate).format("YYYY-MM-DD")} ${c.classTime}`, "YYYY-MM-DD HH:mm");
+    const diff = dt.diff(moment(), "minutes");
+    return diff >= -90 && diff <= 15;
+  }).length;
 
   const columns = [
     {
@@ -185,16 +162,12 @@ const Classes = ({ onUpdate }) => {
       dataIndex: "classDate",
       key: "classDate",
       render: (val) => moment(val).format("DD MMM YYYY"),
-      filters: [
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December",
-      ].map((m, i) => ({ text: m, value: String(i + 1).padStart(2, "0") })),
+      filters: ["January","February","March","April","May","June","July","August","September","October","November","December"].map((m, i) => ({ text: m, value: String(i + 1).padStart(2, "0") })),
       onFilter: (value, record) => moment(record.classDate).format("MM") === value,
     },
     {
       title: "Time",
-      render: (record) =>
-        record?.classTime ? moment(record.classTime, "HH:mm").format("hh:mm A") : "N/A",
+      render: (record) => record?.classTime ? moment(record.classTime, "HH:mm").format("hh:mm A") : "N/A",
     },
     {
       title: "Status",
@@ -207,99 +180,113 @@ const Classes = ({ onUpdate }) => {
       title: "Notes",
       dataIndex: "notes",
       key: "notes",
-      render: (notes) => notes ? <span className="text-xs text-gray-600">{notes}</span> : <span className="text-gray-400 text-xs">—</span>,
+      render: (notes) => notes
+        ? <span className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">{notes}</span>
+        : <span className="text-slate-400 text-xs">—</span>,
     },
     {
       title: "Action",
       render: (record) => (
         <div className="flex gap-2 flex-wrap">
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => handleEditClick(record)}
-            disabled={record.isCancelled}
-          >
-            <EditOutlined />
+          <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => openModal(record, { edit: true })} disabled={record.isCancelled} />
+          <Button size="small" icon={<StopOutlined />} onClick={() => openModal(record, { cancel: true })} disabled={record.isCancelled} style={{ borderColor: "#f59e0b", color: "#f59e0b" }}>
+            Cancel
           </Button>
-          <Button
-            size="small"
-            onClick={() => handleCancelClick(record)}
-            disabled={record.isCancelled}
-            style={{ borderColor: "#f59e0b", color: "#f59e0b" }}
-          >
-            <StopOutlined /> Cancel
-          </Button>
-          <Button type="primary" danger size="small" onClick={() => handleDeleteClick(record)}>
-            <DeleteOutlined />
-          </Button>
+          <Button type="primary" danger size="small" icon={<DeleteOutlined />} onClick={() => openModal(record)} />
         </div>
       ),
     },
   ];
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Classes Management</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddClick}>
-          New Class
-        </Button>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl flex items-center justify-center">
+              <BookOutlined className="text-white text-base" />
+            </div>
+            <div>
+              <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-lg leading-tight">Classes Management</h2>
+              <p className="text-xs text-slate-400">{filteredData.length} classes</p>
+            </div>
+          </div>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal(null, { add: true })}>
+            New Class
+          </Button>
+        </div>
+
+        {/* Status chips */}
+        <div className="flex gap-3 flex-wrap">
+          {liveCount > 0 && (
+            <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-xs text-emerald-700 font-medium">{liveCount} live now</span>
+            </div>
+          )}
+          <div className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
+            <span className="w-2 h-2 bg-blue-400 rounded-full" />
+            <span className="text-xs text-blue-700 font-medium">{upcomingCount} upcoming</span>
+          </div>
+          <div className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl">
+            <span className="text-xs text-slate-600 font-medium">{filteredData.length} total</span>
+          </div>
+        </div>
       </div>
-      <Search
-        placeholder="Search by class name or grade"
-        enterButton
-        allowClear
-        onSearch={handleSearch}
-        className="mb-4 w-full md:w-1/2"
-      />
-      {loader ? (
-        <center className="mt-20">
-          <Spin size="large" />
-        </center>
-      ) : (
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          rowKey="_id"
-          bordered
-          pagination={{ pageSize: 10, showSizeChanger: true }}
-          scroll={{ x: "max-content" }}
+
+      <div className="px-6 pt-4 pb-2">
+        <Search
+          prefix={<SearchOutlined className="text-slate-400" />}
+          placeholder="Search by class name or grade"
+          enterButton
+          allowClear
+          onSearch={handleSearch}
+          className="w-full md:w-1/2"
         />
-      )}
+      </div>
+
+      <div className="px-6 pb-6">
+        {loader ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-slate-400 text-sm">Loading classes...</p>
+            </div>
+          </div>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filteredData}
+            rowKey="_id"
+            bordered={false}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            scroll={{ x: "max-content" }}
+            className="mt-4"
+          />
+        )}
+      </div>
 
       <CustomModal
         visible={modalVisible}
         onCancel={() => { setModalVisible(false); setSelectedClass(null); }}
-        onConfirm={
-          isEditMode ? handleEditSubmit
-          : isAddMode ? handleAddSubmit
-          : isCancelMode ? confirmCancel
-          : confirmDelete
-        }
+        onConfirm={isEditMode ? handleEditSubmit : isAddMode ? handleAddSubmit : isCancelMode ? confirmCancel : confirmDelete}
         confirmLoading={loading}
-        title={
-          isEditMode ? "Edit Class"
-          : isAddMode ? "Add New Class"
-          : isCancelMode ? "Cancel Class"
-          : "Confirm Deletion"
-        }
+        title={isEditMode ? "Edit Class" : isAddMode ? "Add New Class" : isCancelMode ? "Cancel Class" : "Confirm Deletion"}
         content={
-          isEditMode || isAddMode
-            ? null
-            : isCancelMode
-            ? (
-              <div>
-                <p className="mb-2">Are you sure you want to cancel <strong>{selectedClass?.className}</strong>? All enrolled students will be notified via email.</p>
-                <textarea
-                  className="w-full border rounded p-2 mt-2 text-sm"
-                  rows={3}
-                  placeholder="Reason for cancellation (optional)"
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                />
-              </div>
-            )
-            : `Are you sure you want to permanently delete "${selectedClass?.className}"?`
+          isEditMode || isAddMode ? null
+          : isCancelMode ? (
+            <div>
+              <p className="mb-2">Cancel <strong>{selectedClass?.className}</strong>? All enrolled students will be notified.</p>
+              <textarea
+                className="w-full border border-slate-200 rounded-xl p-3 mt-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"
+                rows={3}
+                placeholder="Reason for cancellation (optional)"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </div>
+          ) : `Permanently delete "${selectedClass?.className}"? This cannot be undone.`
         }
         isEditMode={isEditMode}
         isAddMode={!isEditMode && isAddMode}

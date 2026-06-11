@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Button,
-  Input,
-  Card,
-  Switch,
-  Spin,
-  Dropdown,
-  Avatar,
-  Form,
-  Select,
-  notification,
-  Upload,
+  Input, Switch, Dropdown, Avatar, Form, Select, notification, Upload,
 } from "antd";
 import { CloseOutlined, MenuOutlined, UploadOutlined } from "@ant-design/icons";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -26,9 +17,7 @@ const { Option } = Select;
 const Enroll = () => {
   const [loader, setLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark",
-  );
+  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
   const [loading, setLoading] = useState(false);
   const [slipFile, setSlipFile] = useState(null);
   const [uploadingSlip, setUploadingSlip] = useState(false);
@@ -40,8 +29,8 @@ const Enroll = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoader(false), 1500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setLoader(false), 1500);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
@@ -80,14 +69,12 @@ const Enroll = () => {
         setSlipFile(file);
         notification.success({ message: "Slip uploaded successfully" });
       }
-    } catch (error) {
-      notification.error({
-        message: "Failed to upload slip. Please try again.",
-      });
+    } catch {
+      notification.error({ message: "Failed to upload slip. Please try again." });
     } finally {
       setUploadingSlip(false);
     }
-    return false; // prevent antd auto-upload
+    return false;
   };
 
   const handleSubmit = async () => {
@@ -95,25 +82,19 @@ const Enroll = () => {
       setLoading(true);
       const values = await form.validateFields();
       const { firstName, lastName, studentId, amount, month, remarks } = values;
-
       const requestData = {
-        firstName,
-        lastName,
-        studentId,
+        firstName, lastName, studentId,
         amount: Number(amount),
         month,
         remarks: remarks || "",
         slipImage: slipUrl || null,
         year: new Date().getFullYear(),
       };
-
       const response = await dispatch(addPayment(requestData));
-
       if (response.success) {
         notification.success({
           message: "Payment Submitted",
-          description:
-            "Your payment details have been submitted. Awaiting admin approval.",
+          description: "Your payment details have been submitted. Awaiting admin approval.",
           placement: "topRight",
         });
         form.resetFields(["amount", "month", "remarks"]);
@@ -126,254 +107,192 @@ const Enroll = () => {
           placement: "topRight",
         });
       }
-    } catch (error) {
-      console.error("Form error:", error);
+    } catch {
+      // form validation error
     } finally {
       setLoading(false);
     }
   };
 
   const profileMenu = (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
-      <Button
-        type="default"
-        block
-        className="mt-4 mb-2"
-        onClick={() => history(`/user-profile/${user?.firstName}`)}
-      >
-        Profile
-      </Button>
-      <Button
-        type="default"
-        block
-        className="mb-2"
-        onClick={() => history(`/user-payments/${user?.firstName}`)}
-      >
-        Payments
-      </Button>
-      <Button type="default" block onClick={logoutHandler}>
-        Logout
-      </Button>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-3 min-w-[160px]">
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors font-medium" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+      <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+      <button className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors font-medium" onClick={logoutHandler}>🚪 Logout</button>
     </div>
   );
 
-  return loader ? (
-    <center className="mt-80">
-      <Spin size="large" />
-    </center>
-  ) : (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  if (loader) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-poppins text-slate-500 dark:text-slate-400 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+
       {/* Navbar */}
-      <nav className="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center lg:px-10 md:px-6 px-4 z-50">
-        <h1
-          className="text-xl font-bold cursor-pointer"
-          onClick={() => history(`/user-dashboard/${user?.firstName}`)}
-        >
-          LMS Platform - Devians (ඩේවියන්ස්) 🏛️
-        </h1>
-        <div className="hidden md:flex gap-4">
-          <Button
-            type={user?.membership?.status === "active" ? "default" : "primary"}
-            className="!h-10 flex items-center justify-center"
-            onClick={() =>
-              user?.membership?.status === "active"
-                ? history(`/user-classes/${user?.firstName}`)
-                : history(`/user-enroll/${user?.firstName}`)
-            }
-          >
-            {user?.membership?.status === "active" ? "Classes" : "Enroll"}
-          </Button>
-          <Dropdown
-            overlay={profileMenu}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <div className="relative cursor-pointer">
-              <Avatar
-                className="bg-blue-500"
-                size={40}
-                src={user?.profilePhoto || undefined}
-              >
-                {!user?.profilePhoto &&
-                  user?.firstName?.charAt(0).toUpperCase()}
-              </Avatar>
-              {user?.membership?.status && (
-                <span
-                  className={`absolute top-0 right-0 text-sm ${user?.membership?.status === "active" ? "text-green-500" : "text-yellow-500"}`}
-                >
+      <nav className="fixed top-0 w-full glass-nav z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
+          <h1 className="font-poppins text-xl font-bold gradient-text cursor-pointer" onClick={() => history(`/user-dashboard/${user?.firstName}`)}>
+            Devians ✦ LMS
+          </h1>
+          <div className="hidden md:flex items-center gap-3">
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+            <button
+              className="btn-primary text-sm"
+              onClick={() =>
+                user?.membership?.status === "active"
+                  ? history(`/user-classes/${user?.firstName}`)
+                  : history(`/user-enroll/${user?.firstName}`)
+              }
+            >
+              {user?.membership?.status === "active" ? "📚 Classes" : "🎓 Enroll"}
+            </button>
+            <Dropdown overlay={profileMenu} trigger={["click"]} placement="bottomRight">
+              <div className="relative cursor-pointer">
+                <Avatar className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold" size={40} src={user?.profilePhoto || undefined}>
+                  {!user?.profilePhoto && user?.firstName?.charAt(0).toUpperCase()}
+                </Avatar>
+                <span className={`absolute -top-0.5 -right-0.5 text-xs leading-none ${user?.membership?.status === "active" ? "text-emerald-500" : "text-amber-500"}`}>
                   {user?.membership?.status === "active" ? "✅" : "⏳"}
                 </span>
-              )}
-            </div>
-          </Dropdown>
+              </div>
+            </Dropdown>
+          </div>
+          <div className="md:hidden">
+            <button className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
+            </button>
+          </div>
         </div>
-        <div className="md:hidden">
-          <Button type="default" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <CloseOutlined /> : <MenuOutlined />}
-          </Button>
-        </div>
+        {menuOpen && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-4 flex flex-col items-center gap-3">
+            <button className="btn-primary w-full text-sm" onClick={() => history(`/user-enroll/${user?.firstName}`)}>🎓 Enroll</button>
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-profile/${user?.firstName}`)}>👤 Profile</button>
+            <button className="w-full text-sm text-slate-700 dark:text-slate-300 py-2" onClick={() => history(`/user-payments/${user?.firstName}`)}>💳 Payments</button>
+            <button className="w-full text-sm text-rose-600 py-2" onClick={logoutHandler}>🚪 Logout</button>
+            <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} checkedChildren="🌙" unCheckedChildren="☀️" />
+          </motion.div>
+        )}
       </nav>
 
-      {menuOpen && (
-        <div className="md:hidden absolute top-14 left-0 w-full bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col items-center space-y-4 z-50">
-          {user?.membership?.status === "active" ? (
-            <Button
-              type="default"
-              onClick={() => history(`/user-classes/${user?.firstName}`)}
-            >
-              Classes
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              onClick={() => history(`/user-enroll/${user?.firstName}`)}
-            >
-              Enroll
-            </Button>
-          )}
-          <Button
-            type="default"
-            onClick={() => history(`/user-profile/${user?.firstName}`)}
-          >
-            Profile
-          </Button>
-          <Button
-            type="default"
-            onClick={() => history(`/user-payments/${user?.firstName}`)}
-          >
-            Payments
-          </Button>
-          <Button type="default" onClick={logoutHandler}>
-            Logout
-          </Button>
-          <Switch
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            checkedChildren="🌙"
-            unCheckedChildren="☀️"
-          />
-        </div>
-      )}
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center pt-24 pb-16 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-lg"
+        >
+          {/* Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+            {/* Gradient header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-8 text-white text-center relative overflow-hidden">
+              <div className="blob w-32 h-32 bg-white/10 top-0 right-0" />
+              <div className="relative z-10">
+                <div className="text-4xl mb-3">💳</div>
+                <h2 className="font-poppins text-2xl font-bold">Submit Payment</h2>
+                <p className="text-indigo-100 text-sm mt-1">Fill in your payment details for admin review</p>
+              </div>
+            </div>
 
-      <div className="min-h-screen flex items-center justify-center p-4 mt-10 dark:text-white">
-        <Card className="w-full max-w-lg shadow-lg p-6 bg-white rounded-lg mt-6">
-          <h2 className="text-2xl font-semibold text-center mb-2">
-            Submit Payment
-          </h2>
-          <p className="text-center text-gray-500 text-sm mb-6">
-            Fill in your payment details below. An admin will review and approve
-            your membership.
-          </p>
-          <Form layout="vertical" form={form}>
-            <Form.Item label="First Name" name="firstName">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Last Name" name="lastName">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item label="Student ID" name="studentId">
-              <Input disabled />
-            </Form.Item>
-            <Form.Item
-              label="Amount (Rs.)"
-              name="amount"
-              rules={[{ required: true, message: "Please enter the amount" }]}
-            >
-              <Input type="number" min={1} placeholder="Enter amount paid" />
-            </Form.Item>
-            <Form.Item
-              label="Month"
-              name="month"
-              rules={[{ required: true, message: "Please select a month" }]}
-            >
-              <Select placeholder="Select Month">
-                {[
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ].map((m) => (
-                  <Option key={m} value={m}>
-                    {m}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="Remarks (optional)" name="remarks">
-              <Input.TextArea
-                placeholder="Any notes for the admin..."
-                rows={2}
-              />
-            </Form.Item>
-            <Form.Item label="Payment Slip (optional)">
-              <Upload
-                beforeUpload={handleSlipUpload}
-                showUploadList={
-                  slipFile ? [{ name: slipFile.name, status: "done" }] : false
-                }
-                maxCount={1}
-                accept="image/*"
-              >
-                <Button icon={<UploadOutlined />} loading={uploadingSlip}>
-                  {slipFile ? "Change Slip" : "Upload Payment Slip"}
-                </Button>
-              </Upload>
-              {slipUrl && (
-                <p className="text-green-600 text-xs mt-1">
-                  ✅ Slip uploaded successfully
-                </p>
-              )}
-            </Form.Item>
-            <Button
-              type="primary"
-              block
-              loading={loading}
-              onClick={handleSubmit}
-              disabled={uploadingSlip}
-            >
-              Submit Payment
-            </Button>
-          </Form>
-        </Card>
+            <div className="p-6 md:p-8">
+              <Form layout="vertical" form={form}>
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">First Name</span>} name="firstName">
+                    <Input disabled className="rounded-xl" />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Last Name</span>} name="lastName">
+                    <Input disabled className="rounded-xl" />
+                  </Form.Item>
+                </div>
+
+                <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Student ID</span>} name="studentId">
+                  <Input disabled className="rounded-xl" />
+                </Form.Item>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item
+                    label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Amount (Rs.)</span>}
+                    name="amount"
+                    rules={[{ required: true, message: "Enter the amount" }]}
+                  >
+                    <Input type="number" min={1} placeholder="e.g. 2500" className="rounded-xl" />
+                  </Form.Item>
+                  <Form.Item
+                    label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Month</span>}
+                    name="month"
+                    rules={[{ required: true, message: "Select a month" }]}
+                  >
+                    <Select placeholder="Select Month" className="rounded-xl">
+                      {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m) => (
+                        <Option key={m} value={m}>{m}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Remarks (optional)</span>} name="remarks">
+                  <Input.TextArea placeholder="Any notes for the admin..." rows={2} className="rounded-xl" />
+                </Form.Item>
+
+                <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Payment Slip (optional)</span>}>
+                  <Upload
+                    beforeUpload={handleSlipUpload}
+                    showUploadList={slipFile ? [{ name: slipFile.name, status: "done" }] : false}
+                    maxCount={1}
+                    accept="image/*"
+                  >
+                    <button
+                      type="button"
+                      className="w-full border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-xl py-4 px-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm"
+                    >
+                      {uploadingSlip ? (
+                        <span className="animate-spin">⏳</span>
+                      ) : (
+                        <UploadOutlined />
+                      )}
+                      {slipFile ? "Change Payment Slip" : "Upload Payment Slip"}
+                    </button>
+                  </Upload>
+                  {slipUrl && (
+                    <div className="mt-2 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                      <span>✅</span> Slip uploaded successfully
+                    </div>
+                  )}
+                </Form.Item>
+
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading || uploadingSlip}
+                  className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-poppins font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? <span className="animate-spin">⏳</span> : "Submit Payment →"}
+                </button>
+              </Form>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
-      <footer className="bg-gray-900 text-white p-6 mt-auto px-4 md:px-6 lg:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-slate-900 to-slate-950 text-white py-10 px-4 md:px-8 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6">
           <div>
-            <h4 className="font-bold text-lg">About</h4>
-            <p className="text-sm mt-2">
-              An innovative learning platform for students worldwide.
-            </p>
+            <div className="font-poppins font-bold gradient-text mb-1">Devians LMS</div>
+            <p className="text-slate-400 text-sm">Premier English Learning Platform</p>
           </div>
-          <div>
-            <h4 className="font-bold text-lg">Quick Links</h4>
-            <ul className="text-sm mt-2">
-              <li>Courses</li>
-              <li>Pricing</li>
-              <li>Blog</li>
-              <li>Help Center</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">Contact</h4>
-            <p className="text-sm mt-2">Email: support@lms.com</p>
-            <p className="text-sm">Phone: +123 456 7890</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-lg">
-              ©️ Copyrights - All rights reserved
-            </h4>
-            <h6 className="font-bold text-lg sm:py-4">
-              2025 Devians LMS Platform 🏛️
-            </h6>
+          <div className="text-slate-400 text-sm">
+            <p>📧 support@devians.lms</p>
+            <p className="mt-1">© 2025 Devians LMS Platform 🏛️ All rights reserved.</p>
           </div>
         </div>
       </footer>
