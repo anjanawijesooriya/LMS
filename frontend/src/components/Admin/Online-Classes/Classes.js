@@ -53,8 +53,8 @@ const Classes = ({ onUpdate }) => {
 
   const handleSearch = (value) => {
     const filtered = data.filter((c) =>
-      c.className.toLowerCase().includes(value.toLowerCase()) ||
-      c.classGrade.toLowerCase().includes(value.toLowerCase())
+      c.className?.toLowerCase()?.includes(value?.toLowerCase()) ||
+      c.classGrade?.toLowerCase()?.includes(value?.toLowerCase())
     );
     setFilteredData(filtered);
   };
