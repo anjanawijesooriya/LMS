@@ -437,9 +437,11 @@ const ClassDetails = () => {
                             title={
                               classItem.isCancelled
                                 ? "This class has been cancelled"
-                                : !joinable
-                                  ? "Join button activates 15 minutes before class"
-                                  : "Click to join the live class"
+                                : status.color === "ended"
+                                  ? "This class has already ended"
+                                  : joinable
+                                    ? "Click to join the live class"
+                                    : "Join button activates 15 minutes before class"
                             }
                           >
                             <button
@@ -453,10 +455,12 @@ const ClassDetails = () => {
                               }
                               className={`w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
                                 classItem.isCancelled
-                                  ? "bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
+                                  ? "bg-rose-50 dark:bg-rose-900/20 text-rose-400 dark:text-rose-500 cursor-not-allowed border border-rose-200 dark:border-rose-800"
                                   : joinable
                                     ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-emerald-500/30 hover:-translate-y-0.5 animate-pulse-glow"
-                                    : "bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
+                                    : status.color === "ended"
+                                      ? "bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                      : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-400 dark:text-indigo-500 cursor-not-allowed border border-indigo-200 dark:border-indigo-800"
                               }`}
                             >
                               <VideoCameraOutlined />
@@ -464,7 +468,9 @@ const ClassDetails = () => {
                                 ? "Cancelled"
                                 : joinable
                                   ? "Join Now!"
-                                  : "Join Class"}
+                                  : status.color === "ended"
+                                    ? "Class Ended"
+                                    : "Join Class"}
                             </button>
                           </Tooltip>
                         </div>
