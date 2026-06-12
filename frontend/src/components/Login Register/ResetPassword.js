@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { notification, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaLock } from "react-icons/fa";
+import axiosInstance from "../../utils/axiosInstance";
+const axios = axiosInstance;
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");

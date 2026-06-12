@@ -2,22 +2,32 @@ const cron = require("node-cron");
 const User = require("../models/auth");
 const sendEmail = require("./sendEmail");
 
+const alertAdmin = async (jobName, error) => {
+  if (!process.env.ADMIN_EMAIL) return;
+  try {
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: `[Devians LMS] Cron Job Failed: ${jobName}`,
+      html: `<h2>Cron Job Failure Alert</h2><p><strong>Job:</strong> ${jobName}</p><pre>${error?.stack || error}</pre>`,
+    });
+  } catch (e) {
+    console.error("Failed to send cron failure alert email:", e);
+  }
+};
+
 const sendPaymentReminders = () => {
   // Run at 9:00 AM every day
   cron.schedule("0 9 * * *", async () => {
     try {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth(); // 0-indexed
+      const currentMonth = now.getMonth();
 
-      // Last day of current month
       const lastDay = new Date(currentYear, currentMonth + 1, 0);
       const daysUntilEnd = Math.ceil((lastDay - now) / (1000 * 60 * 60 * 24));
 
-      // Send reminder 3 days before end of month
       if (daysUntilEnd !== 3) return;
 
-      // Find students with pending or expired membership
       const students = await User.find({
         role: "student",
         "membership.status": { $in: ["pending", "expired"] },
@@ -42,11 +52,15 @@ const sendPaymentReminders = () => {
           <strong>Devians LMS Team</strong>
         `;
 
-        await sendEmail({
-          to: student.email,
-          subject: `Payment Reminder for ${nextMonthName} ${nextMonthYear} - Devians LMS`,
-          html: message,
-        });
+        try {
+          await sendEmail({
+            to: student.email,
+            subject: `Payment Reminder for ${nextMonthName} ${nextMonthYear} - Devians LMS`,
+            html: message,
+          });
+        } catch (emailError) {
+          console.error(`Failed to send reminder to ${student.email}:`, emailError);
+        }
       }
 
       if (students.length > 0) {
@@ -54,6 +68,7 @@ const sendPaymentReminders = () => {
       }
     } catch (error) {
       console.error("Cron: Error sending payment reminders:", error);
+      await alertAdmin("sendPaymentReminders", error);
     }
   });
 

@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   fetchFeaturedCoursesStart,
   fetchFeaturedCoursesSuccess,
@@ -7,6 +6,8 @@ import {
   fetchFeaturedCourseSuccess,
   fetchFeaturedCourseFailure,
 } from "./courseSlice";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 export const fetchFeaturedCourses = () => async (dispatch) => {
   dispatch(fetchFeaturedCoursesStart());

@@ -3,15 +3,16 @@ import {
   fetchClassesSuccess,
   fetchClassesFailure,
 } from "./classSlice";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 export const fetchClasses = () => async (dispatch) => {
   try {
     dispatch(fetchClassesStart());
     const response = await axios.get("/classes/");
 
-    if (response.data) {
-      dispatch(fetchClassesSuccess(response.data));
+    if (response.data && response.data.data) {
+      dispatch(fetchClassesSuccess(response.data.data));
     } else {
       dispatch(fetchClassesFailure("No classes available"));
     }

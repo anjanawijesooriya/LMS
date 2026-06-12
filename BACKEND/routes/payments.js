@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { protect, authorize } = require("../middleware/auth");
 
 const {
   addPayment,
@@ -9,11 +10,14 @@ const {
   deletePayment,
 } = require("../controllers/payments");
 
-router.route("/add").post(addPayment);
-router.route("/").get(getPayments);
-router.route("/:id").get(getPaymentById);
-router.route("/approve/:id").put(approvePayment);
-router.route("/reject/:id").put(rejectPayment);
-router.route("/delete/:id").delete(deletePayment);
+// Authenticated routes
+router.route("/add").post(protect, addPayment);
+router.route("/").get(protect, getPayments);
+router.route("/:id").get(protect, getPaymentById);
+
+// Admin-only routes
+router.route("/approve/:id").put(protect, authorize("admin"), approvePayment);
+router.route("/reject/:id").put(protect, authorize("admin"), rejectPayment);
+router.route("/delete/:id").delete(protect, authorize("admin"), deletePayment);
 
 module.exports = router;

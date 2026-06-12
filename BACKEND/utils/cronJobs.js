@@ -2,13 +2,25 @@ const cron = require("node-cron");
 const User = require("../models/auth");
 const sendEmail = require("./sendEmail");
 
+const alertAdmin = async (jobName, error) => {
+  if (!process.env.ADMIN_EMAIL) return;
+  try {
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: `[Devians LMS] Cron Job Failed: ${jobName}`,
+      html: `<h2>Cron Job Failure Alert</h2><p><strong>Job:</strong> ${jobName}</p><pre>${error?.stack || error}</pre>`,
+    });
+  } catch (e) {
+    console.error("Failed to send cron failure alert email:", e);
+  }
+};
+
 const resetExpiredMemberships = () => {
   // Run at midnight every day
   cron.schedule("0 0 * * *", async () => {
     try {
       const currentDate = new Date();
 
-      // Find active/expired users whose expiry has passed and haven't been notified yet
       const users = await User.find({
         "membership.status": { $ne: "pending" },
         "membership.expiryDate": { $lt: currentDate },
@@ -30,11 +42,15 @@ const resetExpiredMemberships = () => {
           <strong>Devians LMS Team</strong>
         `;
 
-        await sendEmail({
-          to: user.email,
-          subject: "Membership Expired - Devians LMS",
-          html: message,
-        });
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: "Membership Expired - Devians LMS",
+            html: message,
+          });
+        } catch (emailError) {
+          console.error(`Failed to send expiry email to ${user.email}:`, emailError);
+        }
 
         console.log(`Membership expired and notification sent: ${user.email}`);
       }
@@ -44,6 +60,7 @@ const resetExpiredMemberships = () => {
       }
     } catch (error) {
       console.error("Cron: Error updating membership status:", error);
+      await alertAdmin("resetExpiredMemberships", error);
     }
   });
 

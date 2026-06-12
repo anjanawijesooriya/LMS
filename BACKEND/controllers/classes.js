@@ -34,8 +34,16 @@ exports.addClass = async (req, res) => {
 
 exports.getClasses = async (req, res) => {
   try {
-    const classes = await Class.find().sort({ classDate: 1 });
-    res.json(classes);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const [classes, total] = await Promise.all([
+      Class.find().sort({ classDate: 1 }).skip(skip).limit(limit),
+      Class.countDocuments(),
+    ]);
+
+    res.json({ success: true, data: classes, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

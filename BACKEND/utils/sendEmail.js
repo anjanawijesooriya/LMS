@@ -1,6 +1,3 @@
-//email services goes here
-//using gmail API
-
 const nodemailer = require("nodemailer");
 
 const sendEmail = (options) => {
@@ -19,12 +16,11 @@ const sendEmail = (options) => {
     html: options.html,
   };
 
-  transporter.sendMail(mailOptions, function (err, info) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(info);
-    }
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) reject(err);
+      else resolve(info);
+    });
   });
 };
 

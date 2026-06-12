@@ -1,7 +1,8 @@
 import { Modal, Spin, notification } from "antd";
 import React, { useState } from "react";
 import { LoadingOutlined, MailOutlined } from "@ant-design/icons";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
+const axios = axiosInstance;
 
 const ForgotPassword = () => {
   const [visible, setVisible] = useState(false);

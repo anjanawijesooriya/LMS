@@ -18,11 +18,13 @@ import { motion } from "framer-motion";
 import Users from "./Users/Users";
 import Classes from "./Online-Classes/Classes";
 import Payments from "./Payments/Payments";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import moment from "moment";
-
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser } from "../../redux/features/auth/authActions";
+
+const axios = axiosInstance;
+
 
 const { Sider, Content } = Layout;
 
@@ -61,9 +63,9 @@ const Dashboard = () => {
         axios.get("/classes/"),
         axios.get("/payments/"),
       ]);
-      setStdData(usersRes.data.filter((u) => u.role === "student"));
-      setClsData(clsRes.data);
-      setPayData(payRes.data);
+      setStdData((usersRes.data.data || []).filter((u) => u.role === "student"));
+      setClsData(clsRes.data.data || []);
+      setPayData(payRes.data.data || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     }

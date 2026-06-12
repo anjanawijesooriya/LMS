@@ -13,7 +13,8 @@ import {
   deleteProfileFailure,
   logout,
 } from "./authSlice";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 // The loginUser action to make the real API call
 export const loginUser = (credentials) => async (dispatch) => {

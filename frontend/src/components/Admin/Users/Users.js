@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Table, Tag, Input, Spin, Button, notification } from "antd";
 import { DeleteOutlined, DownloadOutlined, SearchOutlined, TeamOutlined } from "@ant-design/icons";
 import CustomModal from "../Modal";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 const { Search } = Input;
 
@@ -39,7 +40,7 @@ const Users = ({ onUpdate }) => {
   const fetchUsers = async () => {
     try {
       const res = await axios.get("/api/auth/get");
-      const students = res.data.filter((u) => u.role === "student");
+      const students = (res.data.data || []).filter((u) => u.role === "student");
       setData(students);
       setFilteredData(students);
     } catch (error) {

@@ -6,15 +6,16 @@ import {
   paymentsAddingSuccess,
   paymentsAddingFailure,
 } from "./paymentSlice";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 export const fetchPayments = () => async (dispatch) => {
   dispatch(fetchPaymentsStart());
   try {
     const response = await axios.get("/payments/");
     console.log(response.data);
-    if (response.data) {
-      dispatch(fetchPaymentsSuccess(response.data));
+    if (response.data && response.data.data) {
+      dispatch(fetchPaymentsSuccess(response.data.data));
     } else {
       dispatch(fetchPaymentsFailure("No payments available"));
     }

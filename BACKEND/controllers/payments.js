@@ -8,7 +8,12 @@ exports.addPayment = async (req, res) => {
     const { firstName, lastName, studentId, amount, month, remarks, slipImage, year } = req.body;
 
     if (!firstName || !lastName || !studentId || !amount || !month) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+      return res.status(400).json({ success: false, message: "All required fields must be filled" });
+    }
+
+    const parsedAmount = Number(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 100000) {
+      return res.status(400).json({ success: false, message: "Invalid payment amount" });
     }
 
     const paymentYear = year || new Date().getFullYear();
@@ -26,7 +31,7 @@ exports.addPayment = async (req, res) => {
 
     await newPayment.save();
 
-    res.status(201).json({ message: "Payment Added Successfully!", data: newPayment });
+    res.status(201).json({ success: true, message: "Payment Added Successfully!", data: newPayment });
   } catch (error) {
     console.error("Payment Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -36,11 +41,19 @@ exports.addPayment = async (req, res) => {
 // Get All Payments
 exports.getPayments = async (req, res) => {
   try {
-    const payments = await Payment.find().sort({ createdAt: -1 });
-    res.status(200).json(payments);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const [payments, total] = await Promise.all([
+      Payment.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Payment.countDocuments(),
+    ]);
+
+    res.status(200).json({ success: true, data: payments, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Get Payments Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -49,9 +62,9 @@ exports.getPaymentById = async (req, res) => {
   try {
     const payment = await Payment.findById(req.params.id);
     if (!payment) {
-      return res.status(404).json({ message: "Payment Not Found" });
+      return res.status(404).json({ success: false, message: "Payment Not Found" });
     }
-    res.status(200).json(payment);
+    res.status(200).json({ success: true, data: payment });
   } catch (error) {
     console.error("Get Payment Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -63,9 +76,9 @@ exports.deletePayment = async (req, res) => {
   try {
     const payment = await Payment.findByIdAndDelete(req.params.id);
     if (!payment) {
-      return res.status(404).json({ message: "Payment Not Found" });
+      return res.status(404).json({ success: false, message: "Payment Not Found" });
     }
-    res.status(200).json({ message: "Payment Deleted Successfully!" });
+    res.status(200).json({ success: true, message: "Payment Deleted Successfully!" });
   } catch (error) {
     console.error("Delete Payment Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -100,11 +113,16 @@ exports.approvePayment = async (req, res) => {
     // Expiry = 1st of the month AFTER the paid month
     const newExpiryDate = new Date(paymentYear, monthIndex, 1);
 
+    // Never set an expiry in the past: if the calculated date is already past, use end of current month
+    const today = new Date();
+    const minExpiry = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const effectiveNewExpiry = newExpiryDate < minExpiry ? minExpiry : newExpiryDate;
+
     // Never let a past-month approval roll back an existing later expiry
     const currentExpiry = user.membership.expiryDate
       ? new Date(user.membership.expiryDate)
       : new Date(0);
-    const expiryDate = newExpiryDate > currentExpiry ? newExpiryDate : currentExpiry;
+    const expiryDate = effectiveNewExpiry > currentExpiry ? effectiveNewExpiry : currentExpiry;
 
     user.membership.status = "active";
     user.membership.expiryDate = expiryDate;
@@ -135,7 +153,7 @@ exports.approvePayment = async (req, res) => {
       html: message,
     });
 
-    res.status(200).json({ message: "Payment Approved Successfully!" });
+    res.status(200).json({ success: true, message: "Payment Approved Successfully!" });
   } catch (error) {
     console.error("Payment Approval Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -182,7 +200,7 @@ exports.rejectPayment = async (req, res) => {
       html: message,
     });
 
-    res.status(200).json({ message: "Payment Rejected Successfully!" });
+    res.status(200).json({ success: true, message: "Payment Rejected Successfully!" });
   } catch (error) {
     console.error("Payment Rejection Error:", error);
     res.status(500).json({ message: "Internal Server Error" });

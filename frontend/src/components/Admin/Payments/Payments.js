@@ -9,7 +9,8 @@ import {
   DollarOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
+const axios = axiosInstance;
 
 const { Search } = Input;
 
@@ -50,8 +51,9 @@ const Payments = ({ onUpdate }) => {
   const fetchPayments = async () => {
     try {
       const res = await axios.get("/payments/");
-      setData(res.data);
-      setFilteredData(res.data);
+      const payments = res.data.data || [];
+      setData(payments);
+      setFilteredData(payments);
     } catch (error) {
       console.error("Error fetching payments:", error);
     }

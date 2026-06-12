@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { protect, authorize } = require("../middleware/auth");
 
 const {
   register,
@@ -13,15 +14,20 @@ const {
   toggleApproval,
 } = require("../controllers/auth");
 
+// Public routes
 router.route("/register").post(register);
 router.route("/login").post(login);
-router.route("/get").get(getUsers);
-router.route("/getProfile/:id").get(getProfile);
-router.route("/update/:id").put(editUser);
-router.route("/delete/:id").delete(deleteUser);
 router.route("/forgotpassword").post(forgotpassword);
 router.route("/passwordreset/:resetToken").put(resetpassword);
-router.route("/registerStaff").post(registerStaff);
-router.route("/toggleApproval/:id").put(toggleApproval);
+
+// Admin-only routes
+router.route("/registerStaff").post(protect, authorize("admin"), registerStaff);
+router.route("/get").get(protect, authorize("admin"), getUsers);
+router.route("/delete/:id").delete(protect, authorize("admin"), deleteUser);
+router.route("/toggleApproval/:id").put(protect, authorize("admin"), toggleApproval);
+
+// Authenticated routes (any logged-in user)
+router.route("/getProfile/:id").get(protect, getProfile);
+router.route("/update/:id").put(protect, editUser);
 
 module.exports = router;

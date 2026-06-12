@@ -6,11 +6,11 @@ import {
 import { CloseOutlined, MenuOutlined, UploadOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser } from "../../redux/features/auth/authActions";
 import { addPayment } from "../../redux/features/payments/paymentActions";
+import axiosInstance from "../../utils/axiosInstance";
+const axios = axiosInstance;
 
 const { Option } = Select;
 

@@ -147,7 +147,12 @@ exports.resetpassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
     }
 
-    user.password = req.body.password;
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+    }
+
+    user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
@@ -161,8 +166,16 @@ exports.resetpassword = async (req, res) => {
 // Get All Users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
-    res.json(users);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      User.find().select("-password").skip(skip).limit(limit),
+      User.countDocuments(),
+    ]);
+
+    res.json({ success: true, data: users, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }

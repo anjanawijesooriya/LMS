@@ -6,12 +6,12 @@ import { motion } from "framer-motion";
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
 import { logoutUser } from "../../redux/features/auth/authActions";
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children, roles }) => {
   const [loader, setLoader] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const dispatch = useDispatch();
 
-  const { token } = useSelector(selectAuthState);
+  const { token, user } = useSelector(selectAuthState);
 
   useEffect(() => {
     const checkSession = () => {
@@ -19,7 +19,7 @@ const PrivateRoute = ({ children }) => {
       if (!loginTime) return;
 
       const currentTime = new Date().getTime();
-      const expirationTime = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      const expirationTime = 24 * 60 * 60 * 1000;
 
       if (currentTime - loginTime > expirationTime) {
         setSessionExpired(true);
@@ -62,7 +62,10 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  // Show session expired modal if the session is expired
+  if (roles && user && !roles.includes(user.role)) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (sessionExpired) {
     return (
       <Modal
@@ -70,7 +73,7 @@ const PrivateRoute = ({ children }) => {
         open={sessionExpired}
         closable={false}
         footer={[
-          <Button type="primary" onClick={handleLogout}>
+          <Button type="primary" key="logout" onClick={handleLogout}>
             Logout
           </Button>,
         ]}

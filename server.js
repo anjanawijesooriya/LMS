@@ -42,8 +42,8 @@ app.use(mongoSanitize());
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.AUTH_RATE_LIMIT) || 20,
   message: { success: false, message: "Too many requests, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -52,7 +52,7 @@ const authLimiter = rateLimit({
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: parseInt(process.env.API_RATE_LIMIT) || 200,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -78,6 +78,7 @@ app.use("/upload", require("./BACKEND/routes/upload"));
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: "Internal server error" });
+  const userId = req.user ? req.user._id : "unauthenticated";
+  console.error(`[${req.method}] ${req.path} | user: ${userId} | ${err.stack}`);
+  res.status(err.status || 500).json({ success: false, message: err.message || "Internal server error" });
 });

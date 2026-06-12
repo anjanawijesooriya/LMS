@@ -50,6 +50,6 @@ const ClassSchema = new Schema({
     type: String,
     default: "",
   },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Class", ClassSchema);

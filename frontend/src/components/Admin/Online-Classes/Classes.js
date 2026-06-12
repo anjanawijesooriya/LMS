@@ -9,8 +9,10 @@ import {
   BookOutlined,
 } from "@ant-design/icons";
 import CustomModal from "../Modal";
-import axios from "axios";
+import axiosInstance from "../../../utils/axiosInstance";
 import moment from "moment";
+
+const axios = axiosInstance;
 
 const { Search } = Input;
 
@@ -43,8 +45,9 @@ const Classes = ({ onUpdate }) => {
   const fetchClasses = async () => {
     try {
       const res = await axios.get("/classes/");
-      setData(res.data);
-      setFilteredData(res.data);
+      const classes = res.data.data || [];
+      setData(classes);
+      setFilteredData(classes);
     } catch (error) {
       console.error("Error fetching classes:", error);
     }
