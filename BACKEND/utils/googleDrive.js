@@ -2,18 +2,22 @@ const { google } = require("googleapis");
 const { Readable } = require("stream");
 const zlib = require("zlib");
 
-const getAuthClient = () => {
-  return new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    },
-    scopes: ["https://www.googleapis.com/auth/drive"],
+const getOAuth2Client = () => {
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    "http://localhost:9999/callback"
+  );
+
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
   });
+
+  return oauth2Client;
 };
 
 const getDriveClient = async () => {
-  const auth = getAuthClient();
+  const auth = getOAuth2Client();
   return google.drive({ version: "v3", auth });
 };
 

@@ -15,21 +15,23 @@
 ## Google Drive Folder Structure
 
 ```
-Devians LMS Backups/             ← you create this folder and share with service account
-  ├── daily/                     ← auto-created, payments + users
+Devians LMS Backups/             ← you create this folder
+  ├── daily/                     ← auto-created
   │   ├── payments_2026-06-13.json.gz
   │   ├── users_2026-06-13.json.gz
   │   ├── payments_2026-06-14.json.gz
   │   └── users_2026-06-14.json.gz
-  ├── weekly/                    ← auto-created, full DB dump
+  ├── weekly/                    ← auto-created
   │   ├── full_backup_2026-06-08.json.gz
   │   └── full_backup_2026-06-15.json.gz
-  ├── cloudinary/                ← auto-created, asset manifest
+  ├── cloudinary/                ← auto-created
   │   ├── cloudinary_manifest_2026-06-08.json.gz
   │   └── cloudinary_manifest_2026-06-15.json.gz
-  └── config/                    ← auto-created, encrypted .env
-      └── env_backup_2026-06-13.enc  ← always only one file (latest)
+  └── config/                    ← auto-created
+      └── env_backup_2026-06-13.enc   ← always one file, always latest
 ```
+
+Files are **gzip-compressed** before upload. The `.env` backup is **AES-256-GCM encrypted** before upload.
 
 ---
 
@@ -37,19 +39,26 @@ Devians LMS Backups/             ← you create this folder and share with servi
 
 | File | Purpose |
 |------|---------|
-| `BACKEND/utils/googleDrive.js` | Google Drive API client — auth, folder management, upload, cleanup |
+| `BACKEND/utils/googleDrive.js` | Google Drive API client — OAuth2 auth, folder management, upload, cleanup |
 | `BACKEND/utils/backupJob.js` | Daily DB cron + Weekly DB + Cloudinary manifest cron |
-| `BACKEND/utils/envBackup.js` | AES-256-GCM encrypt `.env` and upload to Drive on server start |
+| `BACKEND/utils/envBackup.js` | AES-256-GCM encrypt `.env` and upload to Drive on every server start |
+| `BACKEND/scripts/getDriveToken.js` | **One-time script** — run once to get your OAuth2 refresh token |
 | `server.js` | Registers all backup jobs and calls `backupEnvFile()` on startup |
 
 ---
 
-## One-Time Google Drive Setup
+## Why OAuth2 Instead of a Service Account
+
+Google service accounts do not have their own Drive storage quota. When a service account creates a file in your personal Drive folder, it fails with a 403 quota error. OAuth2 tokens represent your real Google account, so files are stored in your 15 GB personal Drive quota with no issues.
+
+---
+
+## One-Time Setup
 
 ### Step 1 — Create a Google Cloud Project
 
 1. Go to [https://console.cloud.google.com](https://console.cloud.google.com)
-2. Click the project dropdown at the top → **New Project**
+2. Click the project dropdown → **New Project**
 3. Name it `devians-lms` → **Create**
 4. Make sure the new project is selected
 
@@ -62,32 +71,29 @@ Devians LMS Backups/             ← you create this folder and share with servi
 
 ---
 
-### Step 3 — Create a Service Account
+### Step 3 — Create OAuth2 Credentials
 
-1. Go to **IAM & Admin** → **Service Accounts**
-2. Click **+ Create Service Account**
-3. Name: `lms-backup` → click **Done**
+1. Go to **APIs & Services** → **Credentials**
+2. Click **+ Create Credentials** → **OAuth client ID**
+3. If prompted to configure the consent screen:
+   - Click **Configure Consent Screen**
+   - Choose **External** → **Create**
+   - Fill in App name: `Devians LMS Backup`, User support email: your email
+   - Scroll to the bottom → **Save and Continue** through all steps
+   - On the last screen click **Back to Dashboard**
+   - Go back to **Credentials** → **+ Create Credentials** → **OAuth client ID**
+4. Application type: **Desktop app**
+5. Name: `LMS Backup` → **Create**
+6. Copy the **Client ID** and **Client Secret** shown in the popup
 
 ---
 
-### Step 4 — Download the Service Account Key
+### Step 4 — Add the Redirect URI
 
-1. Click the service account → **Keys** tab
-2. **Add Key** → **Create new key** → **JSON** → **Create**
-3. A `.json` file downloads — **keep this safe, never commit it to git**
-
-The file looks like:
-```json
-{
-  "type": "service_account",
-  "project_id": "devians-lms",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n",
-  "client_email": "lms-backup@devians-lms.iam.gserviceaccount.com",
-  ...
-}
-```
-
-You need `client_email` and `private_key` from this file.
+1. Click the OAuth2 client you just created to edit it
+2. Under **Authorized redirect URIs** click **+ Add URI**
+3. Add exactly: `http://localhost:9999/callback`
+4. Click **Save**
 
 ---
 
@@ -95,22 +101,7 @@ You need `client_email` and `private_key` from this file.
 
 1. Go to [https://drive.google.com](https://drive.google.com)
 2. **+ New** → **New Folder** → name it `Devians LMS Backups` → **Create**
-
----
-
-### Step 6 — Share the Folder with the Service Account
-
-1. Right-click `Devians LMS Backups` → **Share**
-2. Paste the `client_email` (e.g. `lms-backup@devians-lms.iam.gserviceaccount.com`)
-3. Set role to **Editor**
-4. Uncheck "Notify people" → **Share**
-
----
-
-### Step 7 — Get the Folder ID
-
-1. Open `Devians LMS Backups` in Drive
-2. Copy the ID from the URL:
+3. Open the folder and copy the ID from the URL:
    ```
    https://drive.google.com/drive/folders/1ABCdEfGhIjKlMnOpQrStUvWxYz
                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -119,24 +110,77 @@ You need `client_email` and `private_key` from this file.
 
 ---
 
-### Step 8 — Update Your `.env`
+### Step 6 — Update `.env` with Client ID and Client Secret
+
+Open `.env` and fill in:
 
 ```env
 # Google Drive Backup
-GOOGLE_SERVICE_ACCOUNT_EMAIL=lms-backup@devians-lms.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvA...(full key)...\n-----END PRIVATE KEY-----\n"
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your_client_secret
+GOOGLE_REFRESH_TOKEN=                     ← leave blank for now
 GOOGLE_DRIVE_FOLDER_ID=1ABCdEfGhIjKlMnOpQrStUvWxYz
-
-# Encryption key for .env backup — use a strong passphrase, store it in your password manager
-BACKUP_ENCRYPTION_KEY=some-long-random-passphrase-you-will-remember
-
-# Admin email for backup alerts
-ADMIN_EMAIL=your-admin@email.com
 ```
 
-> **Important — `GOOGLE_PRIVATE_KEY`:** Copy it exactly as it appears in the JSON file. Keep the surrounding double quotes. The `\n` characters inside the key must stay as literal `\n` — the code converts them to real newlines automatically.
+---
 
-> **Important — `BACKUP_ENCRYPTION_KEY`:** This is the only key that can decrypt your `.env` backup. Store it separately in a password manager (Bitwarden, 1Password). If you lose it, the encrypted backup cannot be recovered.
+### Step 7 — Run the One-Time Token Script
+
+From the project root run:
+
+```bash
+node BACKEND/scripts/getDriveToken.js
+```
+
+The terminal will print a URL. Open it in your browser, sign in with the **Google account that owns the `Devians LMS Backups` folder**, and click **Allow**.
+
+The terminal will then print:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ Success! Add this to your .env file:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GOOGLE_REFRESH_TOKEN=1//0gXxxxxxxxxxxxxxxxxxxx
+```
+
+Paste that value into `.env`. You only need to do this **once** — the refresh token does not expire unless you revoke it.
+
+---
+
+### Step 8 — Add the Encryption Key
+
+```env
+# Encryption key for .env backup
+BACKUP_ENCRYPTION_KEY=some-long-random-passphrase
+```
+
+> Store `BACKUP_ENCRYPTION_KEY` in a password manager (Bitwarden, 1Password). It is the only way to decrypt the `.env` backup. If you lose it, the encrypted backup cannot be recovered.
+
+---
+
+### Final `.env` Reference
+
+```env
+# Google Drive Backup
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your_client_secret
+GOOGLE_REFRESH_TOKEN=1//0gXxxxxxxxxxxxxxxxxxxx
+GOOGLE_DRIVE_FOLDER_ID=1ABCdEfGhIjKlMnOpQrStUvWxYz
+
+# .env backup encryption — store this in your password manager separately
+BACKUP_ENCRYPTION_KEY=some-long-random-passphrase
+
+# Admin email for backup success/failure alerts
+ADMIN_EMAIL=your-admin@email.com
+
+# Rate limits
+AUTH_RATE_LIMIT=20
+API_RATE_LIMIT=200
+
+# JWT expiry
+JWT_EXPIRE=24h
+```
 
 ---
 
@@ -144,13 +188,10 @@ ADMIN_EMAIL=your-admin@email.com
 
 ### Daily Backup — 2:00 AM every day
 
-1. Connects to Google Drive via the service account
-2. Finds or creates the `daily/` subfolder
-3. Exports `payments` and `users` collections from MongoDB as JSON
-4. Gzip-compresses and uploads each file with today's date in the filename
-5. Deletes files older than 7 days (keeps last 14 files = 7 days × 2 collections)
-6. Emails admin a summary table on success
-7. Emails admin an error alert with stack trace on failure
+1. Exports `payments` and `users` collections from MongoDB as JSON
+2. Gzip-compresses and uploads each file with today's date in the filename
+3. Deletes files older than 7 days (keeps last 14 files = 7 days × 2 collections)
+4. Emails admin a success summary — or an error alert on failure
 
 ---
 
@@ -164,25 +205,25 @@ Runs two jobs back to back:
 - Keeps last 4 weekly backups
 
 **2. Cloudinary asset manifest**
-- Paginates through all uploaded assets via Cloudinary API (500 per page)
-- Saves a manifest with: `public_id`, `secure_url`, `format`, `folder`, `bytes`, `created_at`
+- Paginates through all uploaded Cloudinary assets (500 per page)
+- Saves: `public_id`, `secure_url`, `format`, `folder`, `bytes`, `created_at`
 - Gzip-compresses and uploads to `cloudinary/`
 - Keeps last 4 manifests
 
-If the Cloudinary manifest fails, the DB backup is **not** rolled back — both results are reported independently in the summary email.
+If the Cloudinary manifest fails, the DB backup is **not** rolled back. Both results are reported independently in the summary email.
 
 ---
 
 ### `.env` Backup — Every server start
 
-1. Reads the `.env` file from disk
-2. Encrypts it with AES-256-GCM using `BACKUP_ENCRYPTION_KEY`
-   - Encryption format: `[16 bytes IV][16 bytes auth tag][encrypted data]`
-3. Deletes any previous backup from `config/` in Drive (always keeps only the latest)
+1. Reads `.env` from disk
+2. Encrypts with **AES-256-GCM** using `BACKUP_ENCRYPTION_KEY`
+   - Format: `[16 bytes IV][16 bytes auth tag][encrypted data]`
+3. Deletes any previous `.enc` file from `config/` (always one file, always current)
 4. Uploads the new `.enc` file
 5. If it fails — logs the error and emails admin, but **does not crash the server**
 
-This means every time you update `.env` and restart the server, the backup automatically updates.
+Every time you update `.env` and restart the server, the backup automatically updates.
 
 ---
 
@@ -204,14 +245,13 @@ This means every time you update `.env` and restart the server, the backup autom
 
 1. Download the `.json.gz` file from Google Drive → `daily/` or `weekly/`
 2. Decompress (7-Zip, `gunzip`, etc.)
-3. For a **daily** file — you get a JSON array for that collection:
+3. **Daily file** — JSON array for one collection:
    ```js
-   // in mongosh
+   // mongosh
    db.payments.insertMany(paymentsArray)
    ```
-4. For a **weekly** file — you get `{ exportedAt, collections: { payments: [...], users: [...] } }`:
+4. **Weekly file** — JSON object with all collections:
    ```bash
-   # extract individual collection and import
    mongoimport --uri "your_mongodb_url" --collection payments --jsonArray --file payments.json
    ```
 
@@ -219,74 +259,56 @@ This means every time you update `.env` and restart the server, the backup autom
 
 ### Restore the `.env` file
 
-The `decryptEnvBackup` helper is built into `envBackup.js`. Run it in a Node REPL:
+Download the `.enc` file from Google Drive → `config/`. Then run this in a Node REPL from the project root:
 
 ```js
 const { decryptEnvBackup } = require("./BACKEND/utils/envBackup");
-
-// prints the decrypted .env content to console
-decryptEnvBackup(
-  "path/to/env_backup_2026-06-13.enc",
-  "your-backup-encryption-key"
-);
+decryptEnvBackup("path/to/env_backup_2026-06-13.enc", "your-backup-encryption-key");
 ```
 
-Then copy the output into a new `.env` file.
+This prints the decrypted `.env` content to the console. Copy it into a new `.env` file.
 
-> You need `BACKUP_ENCRYPTION_KEY` to decrypt. This is why it must be stored in a password manager separately from the `.env` file itself.
+> You need `BACKUP_ENCRYPTION_KEY` to decrypt. This is why it must be stored in a password manager **separately** from the `.env` file itself.
 
 ---
 
 ### Recover Cloudinary images from the manifest
 
 1. Download and decompress the manifest from `cloudinary/`
-2. You have a full list of every asset's `secure_url` and `public_id`
+2. You have every asset's `secure_url` and `public_id`
 3. If the Cloudinary account is still active — files are accessible directly via URL
-4. If the account is lost — use the URL list to contact Cloudinary support or re-download from cached sources
-
----
-
-## Environment Variables Reference
-
-```env
-# Google Drive — required for all backups
-GOOGLE_SERVICE_ACCOUNT_EMAIL=     # client_email from the service account JSON key
-GOOGLE_PRIVATE_KEY=               # private_key from the service account JSON key (keep quotes)
-GOOGLE_DRIVE_FOLDER_ID=           # ID from the Google Drive folder URL
-
-# .env backup encryption — store this in your password manager
-BACKUP_ENCRYPTION_KEY=            # any strong passphrase
-
-# Alerts — all backup failure emails go here
-ADMIN_EMAIL=                      # your admin email address
-```
+4. If the account is lost — use the URL list to contact Cloudinary support
 
 ---
 
 ## Troubleshooting
 
-**Nothing appears in Google Drive after server start**
-- Check `GOOGLE_DRIVE_FOLDER_ID` is correct (just the ID, not the full URL)
-- Check that the folder was shared with the service account email with **Editor** access
+**`invalid_grant` error on startup**
+- `GOOGLE_REFRESH_TOKEN` is missing or incorrect
+- Re-run `node BACKEND/scripts/getDriveToken.js` to get a new token
+
+**`redirect_uri_mismatch` error when running the token script**
+- `http://localhost:9999/callback` is not in the Authorized Redirect URIs list
+- Go to Google Cloud Console → Credentials → your OAuth2 client → add `http://localhost:9999/callback`
+
+**Nothing appears in Google Drive**
+- Check `GOOGLE_DRIVE_FOLDER_ID` is correct (just the ID from the URL, not the full URL)
 - Check server console for `[EnvBackup]` or `[Backup]` log lines
 
-**`invalid_grant` or auth error**
-- `GOOGLE_PRIVATE_KEY` was pasted incorrectly
-- Make sure the full key including `-----BEGIN PRIVATE KEY-----` / `-----END PRIVATE KEY-----` is present
-- The value must be wrapped in double quotes in `.env`
-
 **`.env` backup uploads but decryption fails**
-- The `BACKUP_ENCRYPTION_KEY` used to decrypt must exactly match the one used to encrypt
-- If you changed the key in `.env` after a previous backup, old `.enc` files can only be decrypted with the old key
+- The `BACKUP_ENCRYPTION_KEY` must exactly match the one used during encryption
+- If you changed the key after a previous backup, old `.enc` files need the old key
 
 **Cloudinary manifest shows 0 assets**
-- Cloudinary credentials (`CLOUDINARY_NAME`, `CLOUDINARY_APIKEY`, `CLOUDINARY_APISECRET`) must be set and valid
-- Free tier accounts can list resources — if it still fails check Cloudinary API rate limits
+- Cloudinary credentials in `.env` must be valid
+- Free tier accounts can list resources — check for API rate limit errors in the logs
 
-**To test immediately without waiting for the cron schedule:**
+**Test immediately without waiting for the cron schedule**
+
+Add temporarily to `server.js` after `registerBackupJobs()` and remove once confirmed:
+
 ```js
-// add temporarily to server.js after registerBackupJobs(), remove once confirmed
 const { runDailyBackup, runWeeklyBackup } = require("./BACKEND/utils/backupJob");
-runDailyBackup();    // test daily
-runWeeklyBackup();   // test weekly + cloudinary manifest
+runDailyBackup();    // test daily DB backup
+runWeeklyBackup();   // test weekly DB + Cloudinary manifest
 ```
