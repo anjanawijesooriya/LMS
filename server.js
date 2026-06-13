@@ -9,6 +9,8 @@ const rateLimit = require("express-rate-limit");
 const cloudinary = require("./BACKEND/utils/cloudinary");
 const resetExpiredMemberships = require("./BACKEND/utils/cronJobs");
 const sendPaymentReminders = require("./BACKEND/utils/paymentReminderJob");
+const { registerBackupJobs } = require("./BACKEND/utils/backupJob");
+const { backupEnvFile } = require("./BACKEND/utils/envBackup");
 
 dotenv.config();
 
@@ -65,6 +67,10 @@ app.use("/api/", apiLimiter);
 // Start cron jobs
 resetExpiredMemberships();
 sendPaymentReminders();
+registerBackupJobs();
+
+// Backup .env to Google Drive on every server start
+backupEnvFile();
 
 app.listen(PORT, () => {
   console.log(`Server is up and running in port ${PORT}`);
