@@ -24,6 +24,7 @@ const CustomModal = ({
   const [form] = Form.useForm();
 
   useEffect(() => {
+    if (!visible) return;
     if (isEditMode && initialValues) {
       form.setFieldsValue({
         ...initialValues,
@@ -33,7 +34,7 @@ const CustomModal = ({
     } else if (isAddMode) {
       form.resetFields();
     }
-  }, [isEditMode, isAddMode, initialValues, form]);
+  }, [visible, isEditMode, isAddMode, initialValues, form]);
 
   const handleSubmit = () => {
     form

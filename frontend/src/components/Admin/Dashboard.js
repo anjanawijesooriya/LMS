@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import Users from "./Users/Users";
 import Classes from "./Online-Classes/Classes";
 import Payments from "./Payments/Payments";
+import ClassCalendar from "./ClassCalendar";
 import axiosInstance from "../../utils/axiosInstance";
 import moment from "moment";
 import { selectAuthState } from "../../redux/features/auth/authSelectors";
@@ -60,7 +61,7 @@ const Dashboard = () => {
     try {
       const [usersRes, clsRes, payRes] = await Promise.all([
         axios.get("/api/auth/get"),
-        axios.get("/classes/"),
+        axios.get("/classes/?limit=1000"),
         axios.get("/payments/"),
       ]);
       setStdData((usersRes.data.data || []).filter((u) => u.role === "student"));
@@ -100,7 +101,12 @@ const Dashboard = () => {
   };
 
   const upcomingClasses = clsData
-    .filter((c) => new Date(c.classDate) > new Date() && !c.isCancelled)
+    .filter((c) => {
+      if (c.isCancelled) return false;
+      const dateStr = moment(c.classDate).format("YYYY-MM-DD");
+      const end = moment(`${dateStr} ${c.classTime}`, "YYYY-MM-DD HH:mm").add(90, "minutes");
+      return end.isAfter(moment());
+    })
     .sort((a, b) => new Date(a.classDate) - new Date(b.classDate))
     .slice(0, 5);
 
@@ -235,6 +241,15 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Class Schedule Calendar */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <ClassCalendar classes={clsData} />
+            </motion.div>
           </div>
         );
     }
