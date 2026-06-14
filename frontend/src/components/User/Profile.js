@@ -408,23 +408,32 @@ const Profile = () => {
               </div>
 
               {/* Paid months */}
-              {user?.membership?.paidMonths?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mb-2">
-                    Paid Months
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {user.membership.paidMonths.map((pm, i) => (
-                      <span
-                        key={i}
-                        className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium"
-                      >
-                        ✓ {pm.month}
-                      </span>
-                    ))}
+              {user?.membership?.paidMonths?.length > 0 && (() => {
+                const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                const sorted = [...user.membership.paidMonths].sort((a, b) => {
+                  const [aM, aY] = a.month.split("-");
+                  const [bM, bY] = b.month.split("-");
+                  if (aY !== bY) return parseInt(bY) - parseInt(aY);
+                  return MONTHS.indexOf(bM) - MONTHS.indexOf(aM);
+                });
+                return (
+                  <div className="mb-4">
+                    <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mb-2">
+                      Paid Months
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {sorted.map((pm, i) => (
+                        <span
+                          key={i}
+                          className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium"
+                        >
+                          ✓ {pm.month}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Actions */}
               <div className="space-y-3">

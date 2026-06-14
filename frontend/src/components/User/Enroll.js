@@ -47,12 +47,7 @@ const Enroll = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    form.setFieldsValue({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      studentId: user?.studentId || "",
-      year: currentYear,
-    });
+    form.setFieldsValue({ year: currentYear });
   }, [user, form]);
 
   const logoutHandler = () => {
@@ -85,7 +80,10 @@ const Enroll = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      const { firstName, lastName, studentId, amount, month, year, remarks } = values;
+      const { amount, month, year, remarks } = values;
+      const firstName = user?.firstName || "";
+      const lastName  = user?.lastName  || "";
+      const studentId = user?.studentId || "";
       const requestData = {
         firstName, lastName, studentId,
         amount: Number(amount),
@@ -210,17 +208,26 @@ const Enroll = () => {
             <div className="p-6 md:p-8">
               <Form layout="vertical" form={form}>
                 <div className="grid grid-cols-2 gap-4">
-                  <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">First Name</span>} name="firstName">
-                    <Input disabled className="rounded-xl" />
-                  </Form.Item>
-                  <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Last Name</span>} name="lastName">
-                    <Input disabled className="rounded-xl" />
-                  </Form.Item>
+                  <div>
+                    <p className="text-slate-600 dark:text-slate-300 text-sm font-medium mb-1.5">First Name</p>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 select-none">
+                      {user?.firstName}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-slate-600 dark:text-slate-300 text-sm font-medium mb-1.5">Last Name</p>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 select-none">
+                      {user?.lastName}
+                    </div>
+                  </div>
                 </div>
 
-                <Form.Item label={<span className="text-slate-600 dark:text-slate-300 text-sm font-medium">Student ID</span>} name="studentId">
-                  <Input disabled className="rounded-xl" />
-                </Form.Item>
+                <div className="mb-4 mt-1">
+                  <p className="text-slate-600 dark:text-slate-300 text-sm font-medium mb-1.5">Student ID</p>
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-3 py-2 text-sm font-mono font-medium text-slate-700 dark:text-slate-200 select-none">
+                    {user?.studentId}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <Form.Item

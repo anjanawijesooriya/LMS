@@ -70,7 +70,7 @@ const Payments = () => {
       title: "Student ID",
       dataIndex: "studentId",
       key: "studentId",
-      render: (v) => <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-lg">{v}</span>,
+      render: (v) => <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-2 py-0.5 rounded-lg">{v}</span>,
     },
     {
       title: "Month",
