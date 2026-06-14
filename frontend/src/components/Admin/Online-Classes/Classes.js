@@ -25,10 +25,20 @@ const getClassStatus = (classDate, classTime, isCancelled) => {
   return { label: "Ended", color: "default" };
 };
 
+const STATUS_FILTERS = [
+  { label: "All",       color: "slate",   bg: "bg-slate-100",   border: "border-slate-200",   text: "text-slate-600",   activeBg: "bg-slate-700",   activeText: "text-white" },
+  { label: "Upcoming",  color: "blue",    bg: "bg-blue-50",     border: "border-blue-200",    text: "text-blue-700",    activeBg: "bg-blue-600",    activeText: "text-white" },
+  { label: "Live Now",  color: "green",   bg: "bg-emerald-50",  border: "border-emerald-200", text: "text-emerald-700", activeBg: "bg-emerald-600", activeText: "text-white" },
+  { label: "Ended",     color: "default", bg: "bg-slate-100",   border: "border-slate-200",   text: "text-slate-500",   activeBg: "bg-slate-500",   activeText: "text-white" },
+  { label: "Cancelled", color: "red",     bg: "bg-red-50",      border: "border-red-200",     text: "text-red-600",     activeBg: "bg-red-500",     activeText: "text-white" },
+];
+
 const Classes = ({ onUpdate }) => {
   const [loader, setLoader] = useState(true);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +57,6 @@ const Classes = ({ onUpdate }) => {
       const res = await axios.get("/classes/");
       const classes = res.data.data || [];
       setData(classes);
-      setFilteredData(classes);
     } catch (error) {
       console.error("Error fetching classes:", error);
     }
@@ -55,15 +64,27 @@ const Classes = ({ onUpdate }) => {
 
   useEffect(() => { fetchClasses(); }, []);
 
-  const handleSearch = (value) => {
-    setFilteredData(
-      data.filter(
+  // Re-apply both filters whenever data, search term, or status filter changes
+  useEffect(() => {
+    let result = data;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
         (c) =>
-          c.className?.toLowerCase()?.includes(value?.toLowerCase()) ||
-          c.classGrade?.toLowerCase()?.includes(value?.toLowerCase())
-      )
-    );
-  };
+          c.className?.toLowerCase().includes(q) ||
+          c.classGrade?.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter !== "All") {
+      result = result.filter(
+        (c) => getClassStatus(c.classDate, c.classTime, c.isCancelled).label === statusFilter
+      );
+    }
+    setFilteredData(result);
+  }, [data, searchTerm, statusFilter]);
+
+  const handleSearch = (value) => setSearchTerm(value);
+  const handleStatusFilter = (label) => setStatusFilter(label);
 
   const openModal = (engClass, { edit = false, add = false, cancel = false } = {}) => {
     setSelectedClass(engClass);
@@ -144,13 +165,13 @@ const Classes = ({ onUpdate }) => {
     }
   };
 
-  const upcomingCount = filteredData.filter((c) => !c.isCancelled && new Date(c.classDate) > new Date()).length;
-  const liveCount = filteredData.filter((c) => {
-    if (c.isCancelled) return false;
-    const dt = moment(`${moment(c.classDate).format("YYYY-MM-DD")} ${c.classTime}`, "YYYY-MM-DD HH:mm");
-    const diff = dt.diff(moment(), "minutes");
-    return diff >= -90 && diff <= 15;
-  }).length;
+  // Counts always based on full unfiltered data
+  const statusCounts = data.reduce((acc, c) => {
+    const label = getClassStatus(c.classDate, c.classTime, c.isCancelled).label;
+    acc[label] = (acc[label] || 0) + 1;
+    return acc;
+  }, {});
+  const liveCount = statusCounts["Live Now"] || 0;
 
   const columns = [
     {
@@ -212,7 +233,9 @@ const Classes = ({ onUpdate }) => {
             </div>
             <div>
               <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-lg leading-tight">Classes Management</h2>
-              <p className="text-xs text-slate-400">{filteredData.length} classes</p>
+              <p className="text-xs text-slate-400">
+                {filteredData.length}{filteredData.length !== data.length ? ` of ${data.length}` : ""} classes
+              </p>
             </div>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal(null, { add: true })}>
@@ -220,21 +243,34 @@ const Classes = ({ onUpdate }) => {
           </Button>
         </div>
 
-        {/* Status chips */}
-        <div className="flex gap-3 flex-wrap">
-          {liveCount > 0 && (
-            <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs text-emerald-700 font-medium">{liveCount} live now</span>
-            </div>
-          )}
-          <div className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-400 rounded-full" />
-            <span className="text-xs text-blue-700 font-medium">{upcomingCount} upcoming</span>
-          </div>
-          <div className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl">
-            <span className="text-xs text-slate-600 font-medium">{filteredData.length} total</span>
-          </div>
+        {/* Status filter chips */}
+        <div className="flex gap-2 flex-wrap items-center">
+          {STATUS_FILTERS.map((f) => {
+            const count = f.label === "All" ? data.length : (statusCounts[f.label] || 0);
+            const active = statusFilter === f.label;
+            return (
+              <button
+                key={f.label}
+                onClick={() => handleStatusFilter(f.label)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-150 ${
+                  active
+                    ? `${f.activeBg} ${f.activeText} border-transparent shadow-sm`
+                    : `${f.bg} ${f.border} ${f.text} hover:opacity-80`
+                }`}
+              >
+                {f.label === "Live Now" && active && (
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                )}
+                {f.label === "Live Now" && !active && liveCount > 0 && (
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                )}
+                {f.label}
+                <span className={`px-1.5 py-0.5 rounded-full text-xs leading-none ${active ? "bg-white/20" : "bg-black/10"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
